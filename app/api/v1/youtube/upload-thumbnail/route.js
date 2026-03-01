@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import path from "path";
 import fs from "fs";
 import { put } from "@vercel/blob";
+import { optimizeImage } from "@/lib/optimizeImage";
 
 const UPLOAD_IMAGES_DIR = path.resolve(
   process.env.UPLOAD_PATH || "./uploads/audio",
@@ -29,19 +30,29 @@ export async function POST(request) {
       );
     }
 
-    const contentType = res.headers.get("content-type") || "";
-    const extByType = contentType.includes("png")
-      ? ".png"
-      : contentType.includes("gif")
-        ? ".gif"
-        : contentType.includes("webp")
-          ? ".webp"
-          : ".jpg";
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${extByType}`;
     const bytes = await res.arrayBuffer();
+    let buffer;
+    let ext;
+    try {
+      const optimized = await optimizeImage(bytes);
+      buffer = optimized.buffer;
+      ext = optimized.ext;
+    } catch (optErr) {
+      console.error("Thumbnail optimization failed, using original:", optErr);
+      buffer = Buffer.from(bytes);
+      const contentType = res.headers.get("content-type") || "";
+      ext = contentType.includes("png")
+        ? ".png"
+        : contentType.includes("gif")
+          ? ".gif"
+          : contentType.includes("webp")
+            ? ".webp"
+            : ".jpg";
+    }
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
 
     if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(`images/${filename}`, new Blob([bytes], { type: contentType }), {
+      const blob = await put(`images/${filename}`, buffer, {
         access: "public",
         addRandomSuffix: true,
       });
@@ -52,7 +63,7 @@ export async function POST(request) {
       fs.mkdirSync(UPLOAD_IMAGES_DIR, { recursive: true });
     } catch (e) {}
     const filePath = path.join(UPLOAD_IMAGES_DIR, filename);
-    fs.writeFileSync(filePath, Buffer.from(bytes));
+    fs.writeFileSync(filePath, buffer);
     const relativePath = `images/${filename}`;
     return NextResponse.json({ path: relativePath });
   } catch (err) {

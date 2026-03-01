@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import path from "path";
 import fs from "fs";
 import { put } from "@vercel/blob";
+import { optimizeImage } from "@/lib/optimizeImage";
 
 const UPLOAD_IMAGES_DIR = path.resolve(
   process.env.UPLOAD_PATH || "./uploads/audio",
@@ -21,14 +22,25 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    const ext = (path.extname(file.name) || "").toLowerCase() || ".jpg";
-    const allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-    const safeExt = allowed.includes(ext) ? ext : ".jpg";
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${safeExt}`;
+    const bytes = await file.arrayBuffer();
+    let buffer;
+    let ext;
+    try {
+      const optimized = await optimizeImage(bytes);
+      buffer = optimized.buffer;
+      ext = optimized.ext;
+    } catch (optErr) {
+      console.error("Image optimization failed, using original:", optErr);
+      buffer = Buffer.from(bytes);
+      const origExt = (path.extname(file.name) || "").toLowerCase() || ".jpg";
+      const allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+      ext = allowed.includes(origExt) ? origExt : ".jpg";
+    }
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
 
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       const pathname = `images/${filename}`;
-      const blob = await put(pathname, file, {
+      const blob = await put(pathname, buffer, {
         access: "public",
         addRandomSuffix: true,
       });
@@ -39,8 +51,7 @@ export async function POST(request) {
       fs.mkdirSync(UPLOAD_IMAGES_DIR, { recursive: true });
     } catch (e) {}
     const filePath = path.join(UPLOAD_IMAGES_DIR, filename);
-    const bytes = await file.arrayBuffer();
-    fs.writeFileSync(filePath, Buffer.from(bytes));
+    fs.writeFileSync(filePath, buffer);
     const relativePath = `images/${filename}`;
     return NextResponse.json({ path: relativePath });
   } catch (err) {
