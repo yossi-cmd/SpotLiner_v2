@@ -208,7 +208,8 @@
   min-width: 120px;
 }
 
-.youtubeBlock {
+.youtubeBlock,
+.singleLinkBlock {
   display: flex;
   flex-direction: column;
   gap: 10px;

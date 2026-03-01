@@ -9,9 +9,6 @@ import {
   uploadImage,
   createAlbum,
   getImageUrl,
-  fetchYouTubePlaylist,
-  uploadYouTubeThumbnail,
-  downloadTrackFromYouTube,
 } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
@@ -60,10 +57,6 @@ export default function Upload() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
-  const [youtubePlaylistUrl, setYoutubePlaylistUrl] = useState("");
-  const [youtubeLoading, setYoutubeLoading] = useState(false);
-  const [downloadYoutubeLoading, setDownloadYoutubeLoading] = useState(false);
-  const [downloadYoutubeProgress, setDownloadYoutubeProgress] = useState("");
 
   useEffect(() => {
     if (!canUpload) {
@@ -260,104 +253,6 @@ export default function Upload() {
     }
   };
 
-  const loadYouTubePlaylist = async () => {
-    const url = youtubePlaylistUrl.trim();
-    if (!url) {
-      setError("הדבק קישור לפלייליסט YouTube");
-      return;
-    }
-    setYoutubeLoading(true);
-    setError("");
-    try {
-      const data = await fetchYouTubePlaylist(url);
-      setAlbumId(NEW_ALBUM_VALUE);
-      setNewAlbumName(data.title || "אלבום");
-      if (data.thumbnailUrl) {
-        try {
-          const path = await uploadYouTubeThumbnail(data.thumbnailUrl);
-          setImagePath(path);
-          setImageFile(null);
-        } catch {
-          // keep imagePath empty if thumbnail upload fails
-        }
-      }
-      setAlbumRows(
-        (data.items || []).map((it) => ({
-          file: null,
-          title: it.title || "—",
-          videoId: it.videoId || null,
-        }))
-      );
-    } catch (err) {
-      setError(err.message || "טעינת הפלייליסט נכשלה");
-    } finally {
-      setYoutubeLoading(false);
-    }
-  };
-
-  const rowsWithVideoId = albumRows.filter((r) => r.videoId && !r.file);
-  const canDownloadYoutube = rowsWithVideoId.length > 0 && artistId;
-
-  const downloadYouTubeTracks = async () => {
-    if (!artistId) {
-      setError("נא לבחור אומן");
-      return;
-    }
-    if (rowsWithVideoId.length === 0) {
-      setError("אין שירים להוריד (טען פלייליסט YouTube קודם)");
-      return;
-    }
-    const useNewAlbum = albumId === NEW_ALBUM_VALUE;
-    if (useNewAlbum && !newAlbumName?.trim()) {
-      setError("נא להזין שם לאלבום החדש");
-      return;
-    }
-    setDownloadYoutubeLoading(true);
-    setError("");
-    setSuccess(false);
-    try {
-      let resolvedAlbumId = null;
-      if (useNewAlbum) {
-        const created = await createAlbum(
-          newAlbumName.trim(),
-          parseInt(artistId, 10),
-          imagePath || undefined
-        );
-        resolvedAlbumId = created.id;
-      } else if (albumId) {
-        resolvedAlbumId = parseInt(albumId, 10);
-      }
-      const aid = parseInt(artistId, 10);
-      const trackImagePath = useNewAlbum ? undefined : imagePath || undefined;
-      for (let i = 0; i < rowsWithVideoId.length; i++) {
-        setDownloadYoutubeProgress(
-          `מוריד ${i + 1}/${rowsWithVideoId.length}...`
-        );
-        await downloadTrackFromYouTube({
-          videoId: rowsWithVideoId[i].videoId,
-          title: rowsWithVideoId[i].title || "—",
-          artist_id: aid,
-          album_id: resolvedAlbumId || undefined,
-          image_path: trackImagePath,
-        });
-      }
-      setUploadedCount(rowsWithVideoId.length);
-      setSuccess(true);
-      setDownloadYoutubeProgress("");
-      setAlbumRows([]);
-      setArtistId("");
-      setAlbumId("");
-      setNewAlbumName("");
-      setImagePath("");
-      setImageFile(null);
-    } catch (err) {
-      setError(err.message || "הורדה נכשלה");
-      setDownloadYoutubeProgress("");
-    } finally {
-      setDownloadYoutubeLoading(false);
-    }
-  };
-
   const handleSubmit = mode === MODE_ALBUM ? handleSubmitAlbum : handleSubmitSingle;
   const isAlbum = mode === MODE_ALBUM;
 
@@ -490,40 +385,6 @@ export default function Upload() {
                 )}
               </div>
             </label>
-            <div className={styles.youtubeBlock}>
-              <p className={styles.youtubeTitle}>מצב מתקדם: ייבוא מפלייליסט YouTube</p>
-              <input
-                type="text"
-                value={youtubePlaylistUrl}
-                onChange={(e) => setYoutubePlaylistUrl(e.target.value)}
-                className={styles.input}
-                placeholder="קישור לפלייליסט YouTube (למשל https://www.youtube.com/playlist?list=...)"
-                dir="ltr"
-              />
-              <button
-                type="button"
-                className={styles.youtubeLoadBtn}
-                onClick={loadYouTubePlaylist}
-                disabled={youtubeLoading}
-              >
-                {youtubeLoading ? "טוען..." : "טען פלייליסט"}
-              </button>
-              <p className={styles.youtubeHint}>
-                שם הפלייליסט יהפוך לשם האלבום, התמונה לתמונת האלבום, והסרטונים לרשימת שירים. בחר אומן ואז הורד אודיו מיוטיוב או הוסף קבצים ידנית.
-              </p>
-              {canDownloadYoutube && (
-                <button
-                  type="button"
-                  className={styles.youtubeDownloadBtn}
-                  onClick={downloadYouTubeTracks}
-                  disabled={downloadYoutubeLoading}
-                >
-                  {downloadYoutubeLoading
-                    ? downloadYoutubeProgress || "מוריד..."
-                    : `הורד אודיו מיוטיוב (${rowsWithVideoId.length} שירים)`}
-                </button>
-              )}
-            </div>
             <label className={styles.label}>
               קבצי אודיו (ניתן לבחור כמה)
               <input
@@ -537,7 +398,7 @@ export default function Upload() {
             {albumRows.length > 0 && (
               <div className={styles.albumTableWrap}>
                 <p className={styles.albumTableTitle}>
-                  כותרת השירים (הוסף קבצים למעלה או טען מ-YouTube)
+                  כותרת השירים (הוסף קבצים למעלה)
                 </p>
                 {albumRows.map((row, i) => (
                   <div key={i} className={styles.albumRow}>
@@ -550,7 +411,7 @@ export default function Upload() {
                       ×
                     </button>
                     <span className={styles.fileName}>
-                      {row.file ? row.file.name : row.videoId ? "YouTube" : "—"}
+                      {row.file ? row.file.name : "—"}
                     </span>
                     <input
                       value={row.title || ""}
