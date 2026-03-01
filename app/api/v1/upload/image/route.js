@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/auth";
 import path from "path";
 import fs from "fs";
+import { put } from "@vercel/blob";
 
 const UPLOAD_IMAGES_DIR = path.resolve(
   process.env.UPLOAD_PATH || "./uploads/audio",
@@ -24,6 +25,16 @@ export async function POST(request) {
     const allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
     const safeExt = allowed.includes(ext) ? ext : ".jpg";
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${safeExt}`;
+
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const pathname = `images/${filename}`;
+      const blob = await put(pathname, file, {
+        access: "public",
+        addRandomSuffix: true,
+      });
+      return NextResponse.json({ path: blob.url });
+    }
+
     try {
       fs.mkdirSync(UPLOAD_IMAGES_DIR, { recursive: true });
     } catch (e) {}

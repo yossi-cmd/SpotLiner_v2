@@ -14,10 +14,16 @@ export async function GET(request, { params }) {
     if (!r.rows.length) {
       return NextResponse.json({ error: "Track not found" }, { status: 404 });
     }
+    const storedPath = r.rows[0].file_path;
+
+    if (storedPath.startsWith("http://") || storedPath.startsWith("https://")) {
+      return NextResponse.redirect(storedPath, 302);
+    }
+
     const filePath = path.join(
       process.cwd(),
       UPLOAD_DIR,
-      path.basename(r.rows[0].file_path)
+      path.basename(storedPath)
     );
     if (!fs.existsSync(filePath)) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });

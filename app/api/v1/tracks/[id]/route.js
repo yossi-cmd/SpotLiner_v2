@@ -4,6 +4,7 @@ import { optionalAuth, requireAuth } from "@/lib/auth";
 import { getTracksListSelect } from "@/lib/tracks";
 import path from "path";
 import fs from "fs";
+import { del } from "@vercel/blob";
 
 const UPLOAD_DIR = process.env.UPLOAD_PATH || "./uploads/audio";
 
@@ -164,16 +165,25 @@ export async function DELETE(request, { params }) {
         { status: 403 }
       );
     }
-    const filePath = path.join(
-      process.cwd(),
-      UPLOAD_DIR,
-      path.basename(track.file_path)
-    );
     await query("DELETE FROM tracks WHERE id = $1", [id]);
-    try {
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    } catch (e) {
-      console.warn("Could not delete track file:", filePath, e.message);
+    const fp = track.file_path;
+    if (fp.startsWith("http://") || fp.startsWith("https://")) {
+      try {
+        await del(fp);
+      } catch (e) {
+        console.warn("Could not delete blob:", fp, e.message);
+      }
+    } else {
+      const filePath = path.join(
+        process.cwd(),
+        UPLOAD_DIR,
+        path.basename(fp)
+      );
+      try {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn("Could not delete track file:", filePath, e.message);
+      }
     }
     return new NextResponse(null, { status: 204 });
   } catch (err) {

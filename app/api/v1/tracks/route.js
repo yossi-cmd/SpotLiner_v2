@@ -4,6 +4,7 @@ import { optionalAuth, requireRole } from "@/lib/auth";
 import { getTracksListSelect } from "@/lib/tracks";
 import path from "path";
 import fs from "fs";
+import { put } from "@vercel/blob";
 
 const UPLOAD_DIR = process.env.UPLOAD_PATH || "./uploads/audio";
 
@@ -87,17 +88,32 @@ export async function POST(request) {
       }
     }
 
-    const dir = path.join(process.cwd(), UPLOAD_DIR);
-    try {
-      fs.mkdirSync(dir, { recursive: true });
-    } catch (e) {}
-    const ext =
-      path.extname(file.name) ||
-      (file.type?.startsWith("audio/") ? ".mp3" : ".mp3");
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    const filePath = path.join(dir, filename);
-    const bytes = await file.arrayBuffer();
-    fs.writeFileSync(filePath, Buffer.from(bytes));
+    let filePathForDb;
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const ext =
+        path.extname(file.name) ||
+        (file.type?.startsWith("audio/") ? ".mp3" : ".mp3");
+      const pathname = `audio/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+      const blob = await put(pathname, file, {
+        access: "public",
+        addRandomSuffix: true,
+        multipart: true,
+      });
+      filePathForDb = blob.url;
+    } else {
+      const dir = path.join(process.cwd(), UPLOAD_DIR);
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch (e) {}
+      const ext =
+        path.extname(file.name) ||
+        (file.type?.startsWith("audio/") ? ".mp3" : ".mp3");
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+      const filePath = path.join(dir, filename);
+      const bytes = await file.arrayBuffer();
+      fs.writeFileSync(filePath, Buffer.from(bytes));
+      filePathForDb = filename;
+    }
 
     const result = await query(
       `INSERT INTO tracks (title, artist, album, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path)
@@ -110,7 +126,7 @@ export async function POST(request) {
         artistId,
         albumId,
         duration,
-        filename,
+        filePathForDb,
         userId,
         trackImagePath || null,
       ]
