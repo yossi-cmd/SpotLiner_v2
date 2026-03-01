@@ -107,10 +107,9 @@ npm run dev
 - **מפתח API**: הגדר `YOUTUBE_API_KEY` ב-.env (ממשק YouTube Data API v3 ב-Google Cloud Console).
 - **טעינת פלייליסט**: `GET /api/v1/youtube/playlist?url=...` או `?id=PLxxx` – מחזיר כותרת, תמונת ממוזערת ורשימת סרטונים.
 - **העלאת תמונה**: `POST /api/v1/youtube/upload-thumbnail` עם `{ url }` – שומר תמונה מ-URL.
-- **הורדת אודיו**: `POST /api/v1/youtube/download-track` – דורש **yt-dlp** מותקן על השרת. התקנה:
-  - **macOS (Homebrew)**: `brew install yt-dlp`
-  - **Linux**: `sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && sudo chmod +x /usr/local/bin/yt-dlp`
-  - אם yt-dlp לא מותקן, ה-API מחזיר 503 עם הודעה להתקנה.
+- **הורדת אודיו**: `POST /api/v1/youtube/download-track` – שתי אפשרויות:
+  1. **שירות חיצוני (מומלץ ב-Vercel)**: הגדר `YT_DLP_API_URL` (למשל `https://yt-dlp--api.up.railway.app`) ו־`YT_DLP_API_KEY` ב-.env. הספוטליינר יקרא ל־`POST /download` עם `url` ו־`format: "mp3"` וישלח `X-API-Key` או `Authorization: Bearer`.
+  2. **מקומי**: אם `YT_DLP_API_URL` לא מוגדר, השרת מריץ **yt-dlp** מקומית (דורש התקנה על המכונה).
 
 ## 5. השלמות אופציונליות
 - Admin send-push – השלמת לוגיקת web-push לפי משתמשים נבחרים.
