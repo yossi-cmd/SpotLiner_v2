@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { search as searchApi, getImageUrl } from "@/lib/api";
+import { search as searchApi, getImageUrl, deleteTrack } from "@/lib/api";
 import { usePlayerStore } from "@/lib/store/playerStore";
+import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
+import EditTrackModal from "@/components/EditTrackModal";
 import Link from "next/link";
 import styles from "./Search.module.css";
 
@@ -11,7 +13,34 @@ export default function Search() {
   const [q, setQ] = useState("");
   const [results, setResults] = useState({ tracks: [], artists: [], albums: [] });
   const [loading, setLoading] = useState(false);
-  const { setQueue, setCurrentTrack, setIsPlaying } = usePlayerStore();
+  const [trackToEdit, setTrackToEdit] = useState(null);
+  const { user } = useAuthStore();
+  const { setQueue, setCurrentTrack, currentTrack } = usePlayerStore();
+
+  const canEditTrack = (track) =>
+    user && (user.role === "admin" || track.uploaded_by === user.id);
+
+  const handleDeleteTrack = async (track) => {
+    if (
+      !window.confirm(
+        `למחוק את השיר "${track.title}"? פעולה זו לא ניתנת לביטול.`
+      )
+    )
+      return;
+    try {
+      await deleteTrack(track.id);
+      setResults((prev) => ({
+        ...prev,
+        tracks: (prev.tracks || []).filter((t) => t.id !== track.id),
+      }));
+      if (currentTrack?.id === track.id) {
+        setQueue([]);
+        usePlayerStore.getState().setCurrentTrack(null);
+      }
+    } catch (err) {
+      window.alert(err.message || "מחיקה נכשלה");
+    }
+  };
 
   const handleSearch = async (e) => {
     e?.preventDefault();
@@ -104,10 +133,24 @@ export default function Search() {
                 key={track.id}
                 track={track}
                 index={i}
+                canEditTrack={canEditTrack(track)}
+                onEditTrack={setTrackToEdit}
+                onDeleteTrack={handleDeleteTrack}
               />
             ))}
           </div>
         </section>
+      )}
+
+      {trackToEdit && (
+        <EditTrackModal
+          track={trackToEdit}
+          onClose={() => setTrackToEdit(null)}
+          onSaved={() => {
+            setTrackToEdit(null);
+            if (q.trim()) handleSearch();
+          }}
+        />
       )}
     </div>
   );

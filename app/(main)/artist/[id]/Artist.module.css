@@ -35,6 +35,115 @@
   font-size: 2rem;
 }
 
+.editImageRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fileLabel {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.fileInput {
+  margin-right: 8px;
+}
+
+.removeImgBtn {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--bg-hover);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.removeImgBtn:hover {
+  background: #333;
+  color: var(--text);
+}
+
+.nameRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.editInput {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--bg-hover);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 1.25rem;
+  min-width: 200px;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.saveBtn {
+  padding: 8px 20px;
+  border-radius: 24px;
+  background: var(--green);
+  color: #000;
+  font-weight: 600;
+}
+
+.saveBtn:disabled {
+  opacity: 0.7;
+}
+
+.cancelBtn {
+  padding: 8px 20px;
+  border-radius: 24px;
+  background: var(--bg-hover);
+  font-weight: 600;
+}
+
+.cancelBtn:hover {
+  background: #333;
+}
+
+.meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.heroActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.editBtn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--bg-hover);
+  font-size: 0.9rem;
+}
+
+.editBtn:hover {
+  background: #333;
+}
+
+.deleteBtn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 80, 80, 0.2);
+  color: #ff6b6b;
+  font-size: 0.9rem;
+}
+
+.deleteBtn:hover {
+  background: rgba(255, 80, 80, 0.35);
+}
+
 .section {
   margin-bottom: 32px;
 }

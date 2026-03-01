@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { getTracksListSelect } from "@/lib/tracks";
 
 export async function GET(request, { params }) {
   try {
     const id = params.id;
     const artist = await query(
-      "SELECT id, name, image_path, created_at FROM artists WHERE id = $1",
+      "SELECT id, name, image_path, created_by, created_at FROM artists WHERE id = $1",
       [id]
     );
     if (!artist.rows.length) {
       return NextResponse.json({ error: "Artist not found" }, { status: 404 });
     }
     const tracks = await query(
-      "SELECT id, title, duration_seconds, album_id, image_path FROM tracks WHERE artist_id = $1 ORDER BY title",
+      `${getTracksListSelect()} WHERE t.artist_id = $1 ORDER BY t.title`,
       [id]
     );
     const albums = await query(
@@ -40,10 +41,12 @@ export async function PUT(request, { params }) {
     const id = params.id;
     const body = await request.json();
     const name = body.name?.trim();
-    const image_path = body.image_path !== undefined ? body.image_path : undefined;
+    const hasImagePath = Object.prototype.hasOwnProperty.call(body, "image_path");
+    const imagePathClause = hasImagePath ? ", image_path = $3" : "";
+    const paramsArr = hasImagePath ? [id, name, body.image_path] : [id, name];
     const r = await query(
-      "UPDATE artists SET name = COALESCE($2, name), image_path = COALESCE($3, image_path) WHERE id = $1 RETURNING id, name, image_path",
-      [id, name, image_path]
+      `UPDATE artists SET name = COALESCE($2, name)${imagePathClause} WHERE id = $1 RETURNING id, name, image_path`,
+      paramsArr
     );
     if (!r.rows.length) {
       return NextResponse.json({ error: "Artist not found" }, { status: 404 });

@@ -23,6 +23,18 @@
   font-weight: 700;
 }
 
+.deleteBtn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 80, 80, 0.2);
+  color: #ff6b6b;
+  font-size: 0.9rem;
+}
+
+.deleteBtn:hover {
+  background: rgba(255, 80, 80, 0.35);
+}
+
 .trackList {
   display: flex;
   flex-direction: column;

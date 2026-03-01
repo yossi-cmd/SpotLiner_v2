@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
   try {
     const id = params.id;
     const album = await query(
-      `SELECT al.id, al.name, al.artist_id, al.image_path, a.name AS artist_name
+      `SELECT al.id, al.name, al.artist_id, al.image_path, al.created_by, a.name AS artist_name
        FROM albums al JOIN artists a ON a.id = al.artist_id WHERE al.id = $1`,
       [id]
     );
@@ -38,10 +38,12 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const name = body.name?.trim();
     const artist_id = body.artist_id;
-    const image_path = body.image_path !== undefined ? body.image_path : undefined;
+    const hasImagePath = Object.prototype.hasOwnProperty.call(body, "image_path");
+    const imagePathClause = hasImagePath ? ", image_path = $4" : "";
+    const paramsArr = hasImagePath ? [id, name, artist_id, body.image_path] : [id, name, artist_id];
     const r = await query(
-      "UPDATE albums SET name = COALESCE($2, name), artist_id = COALESCE($3, artist_id), image_path = COALESCE($4, image_path) WHERE id = $1 RETURNING id, name, artist_id, image_path",
-      [id, name, artist_id, image_path]
+      `UPDATE albums SET name = COALESCE($2, name), artist_id = COALESCE($3, artist_id)${imagePathClause} WHERE id = $1 RETURNING id, name, artist_id, image_path`,
+      paramsArr
     );
     if (!r.rows.length) {
       return NextResponse.json({ error: "Album not found" }, { status: 404 });
