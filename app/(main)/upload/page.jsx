@@ -10,6 +10,7 @@ import {
   createAlbum,
   getImageUrl,
 } from "@/lib/api";
+import { compressAudioIfNeeded } from "@/lib/compressAudioClient";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
 import styles from "./Upload.module.css";
@@ -166,11 +167,12 @@ export default function Upload() {
         );
         resolvedAlbumId = created.id;
       }
-      await uploadTrack(file, {
+      const { file: fileToUpload, durationSeconds } = await compressAudioIfNeeded(file);
+      await uploadTrack(fileToUpload, {
         title: title.trim(),
         artist_id: parseInt(artistId, 10),
         album_id: resolvedAlbumId,
-        duration_seconds: duration,
+        duration_seconds: durationSeconds,
         image_path: imagePath || undefined,
       });
       setSuccess(true);
@@ -229,8 +231,8 @@ export default function Upload() {
       const trackImagePath = useNewAlbum ? undefined : imagePath || undefined;
       for (let i = 0; i < rowsWithFile.length; i++) {
         const row = rowsWithFile[i];
-        const durationSec = await getDurationFromFile(row.file);
-        await uploadTrack(row.file, {
+        const { file: fileToUpload, durationSeconds: durationSec } = await compressAudioIfNeeded(row.file);
+        await uploadTrack(fileToUpload, {
           title: (row.title || getTitleFromFileName(row.file?.name) || "ללא כותרת").trim(),
           artist_id: aid,
           album_id: resolvedAlbumId || undefined,
