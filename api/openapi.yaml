@@ -1,0 +1,728 @@
+openapi: 3.0.3
+info:
+  title: SpotLiner API
+  description: |
+    ממשק API לאפליקציית מוזיקה שיתופית בסגנון Spotify.
+    גרסה 1 – כל הפונקציונליות של SpotLiner המקורי.
+  version: 1.0.0
+  contact:
+    name: SpotLiner
+
+servers:
+  - url: /api/v1
+    description: API base path (relative to host)
+
+tags:
+  - name: auth
+    description: הרשמה, התחברות ומשתמש נוכחי
+  - name: config
+    description: הגדרות ציבוריות (למשל VAPID ל-Push)
+  - name: upload
+    description: העלאת תמונות
+  - name: tracks
+    description: שירים – רשימה, סטרימינג, העלאה, עדכון, מחיקה
+  - name: search
+    description: חיפוש משולב
+  - name: playlists
+    description: פלייליסטים
+  - name: me
+    description: משתמש נוכחי – אהובים, היסטוריה, Push
+  - name: artists
+    description: אומנים
+  - name: albums
+    description: אלבומים
+  - name: youtube
+    description: ייבוא מ-YouTube
+  - name: admin
+    description: ניהול (admin only)
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT מהתחברות (login/register)
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        email: { type: string, format: email }
+        displayName: { type: string, nullable: true }
+        role: { type: string, enum: [user, uploader, admin] }
+      required: [id, email, role]
+
+    AuthResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        token: { type: string, description: JWT }
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        errors: { type: array, items: { type: object }, description: validation errors }
+
+    ArtistRef:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+
+    Track:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        artist: { type: string }
+        album: { type: string }
+        duration_seconds: { type: integer }
+        created_at: { type: string, format: date-time }
+        uploaded_by: { type: integer, nullable: true }
+        artist_id: { type: integer, nullable: true }
+        album_id: { type: integer, nullable: true }
+        image_path: { type: string, nullable: true }
+        cover_image_path: { type: string, nullable: true }
+        featured_artists: { type: array, items: { $ref: '#/components/schemas/ArtistRef' } }
+
+    Playlist:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        is_public: { type: boolean }
+        created_at: { type: string, format: date-time }
+        tracks: { type: array, items: { $ref: '#/components/schemas/Track' } }
+
+    Config:
+      type: object
+      properties:
+        vapidPublicKey: { type: string, nullable: true }
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: הרשמה
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 6 }
+                displayName: { type: string, maxLength: 255 }
+      responses:
+        '201': { description: נרשם בהצלחה; body = AuthResponse }
+        '400': { description: אימייל כבר רשום או validation; body = Error }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: התחברות
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200': { description: התחבר; body = AuthResponse }
+        '401': { description: פרטים לא נכונים; body = Error }
+
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: משתמש נוכחי
+      responses:
+        '200': { description: משתמש; body = User (id, email, displayName, role) }
+        '401': { description: לא מאומת }
+        '404': { description: משתמש לא נמצא }
+
+  /config:
+    get:
+      tags: [config]
+      summary: הגדרות ציבוריות (VAPID וכו')
+      security: []
+      responses:
+        '200': { description: Config (vapidPublicKey וכו') }
+
+  /upload/image:
+    post:
+      tags: [upload]
+      summary: העלאת תמונה (admin/uploader)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image: { type: string, format: binary }
+      responses:
+        '200': { description: path (מחרוזת נתיב לתמונה) }
+        '400': { description: קובץ חסר או לא תמונה }
+        '401': { description: לא מאומת }
+        '403': { description: אין הרשאת uploader/admin }
+
+  /tracks:
+    get:
+      tags: [tracks]
+      summary: רשימת שירים (עם אופציונלי חיפוש)
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        '200': { description: { tracks: Track[] } }
+    post:
+      tags: [tracks]
+      summary: העלאת שיר (admin/uploader)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio, title]
+              properties:
+                audio: { type: string, format: binary }
+                title: { type: string }
+                artist_id: { type: integer }
+                album_id: { type: integer }
+                duration_seconds: { type: integer }
+                image_path: { type: string }
+      responses:
+        '201': { description: שיר שנוצר (Track) }
+        '400': { description: חסר title/artist או קובץ }
+        '401': { description: לא מאומת }
+        '403': { description: אין הרשאת העלאה }
+
+  /tracks/{id}:
+    get:
+      tags: [tracks]
+      summary: פרטי שיר
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Track }
+        '404': { description: שיר לא נמצא }
+    put:
+      tags: [tracks]
+      summary: עדכון שיר (יוצר/מנהל)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                artist_id: { type: integer }
+                album_id: { type: integer }
+                image_path: { type: string }
+                featured_artist_ids: { type: array, items: { type: integer } }
+      responses:
+        '200': { description: Track מעודכן }
+        '403': { description: אין הרשאה }
+        '404': { description: שיר לא נמצא }
+    delete:
+      tags: [tracks]
+      summary: מחיקת שיר (יוצר/מנהל)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: נמחק }
+        '403': { description: אין הרשאה }
+        '404': { description: שיר לא נמצא }
+
+  /tracks/{id}/stream:
+    get:
+      tags: [tracks]
+      summary: סטרימינג אודיו (תמיכה ב-Range)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: token
+          in: query
+          schema: { type: string }
+          description: JWT אם אין Authorization header
+      responses:
+        '200': { description: אודיו מלא }
+        '206': { description: Partial content (Range) }
+        '404': { description: שיר/קובץ לא נמצא }
+
+  /search:
+    get:
+      tags: [search]
+      summary: חיפוש משולב
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: תוצאות (tracks, artists, albums) }
+
+  /playlists:
+    get:
+      tags: [playlists]
+      summary: פלייליסטים של המשתמש
+      responses:
+        '200': { description: { playlists: Playlist[] } }
+    post:
+      tags: [playlists]
+      summary: יצירת פלייליסט
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                isPublic: { type: boolean, default: true }
+      responses:
+        '201': { description: פלייליסט שנוצר }
+
+  /playlists/{id}:
+    get:
+      tags: [playlists]
+      summary: פרטי פלייליסט (כולל שירים)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Playlist + tracks }
+        '403': { description: פלייליסט פרטי של משתמש אחר }
+        '404': { description: לא נמצא }
+    put:
+      tags: [playlists]
+      summary: עדכון פלייליסט
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                isPublic: { type: boolean }
+      responses:
+        '200': { description: פלייליסט מעודכן }
+        '404': { description: לא נמצא }
+    delete:
+      tags: [playlists]
+      summary: מחיקת פלייליסט
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: נמחק }
+        '404': { description: לא נמצא }
+
+  /playlists/{id}/tracks:
+    post:
+      tags: [playlists]
+      summary: הוספת שיר לפלייליסט
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trackId]
+              properties:
+                trackId: { type: integer }
+                position: { type: integer }
+      responses:
+        '201': { description: נוסף }
+        '404': { description: פלייליסט לא נמצא }
+
+  /playlists/{id}/tracks/{trackId}:
+    delete:
+      tags: [playlists]
+      summary: הסרת שיר מפלייליסט
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: trackId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: הוסר }
+        '404': { description: לא בפלייליסט או פלייליסט לא נמצא }
+
+  /me/favorites:
+    get:
+      tags: [me]
+      summary: שירים אהובים
+      responses:
+        '200': { description: { tracks: Track[] } }
+
+  /me/favorites/{trackId}:
+    post:
+      tags: [me]
+      summary: הוספת אהוב
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '201': { description: נוסף }
+    delete:
+      tags: [me]
+      summary: הסרת אהוב
+      parameters:
+        - name: trackId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: הוסר }
+
+  /me/history:
+    get:
+      tags: [me]
+      summary: היסטוריית השמעה
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        '200': { description: { tracks: Track[] } }
+    post:
+      tags: [me]
+      summary: רישום השמעה
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [trackId]
+              properties:
+                trackId: { type: integer }
+      responses:
+        '201': { description: נרשם }
+
+  /me/push-subscription:
+    post:
+      tags: [me]
+      summary: שמירת מנוי Push
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subscription]
+              properties:
+                subscription: { type: object }
+      responses:
+        '201': { description: נשמר }
+        '400': { description: subscription לא תקין }
+
+  /me/push-test:
+    post:
+      tags: [me]
+      summary: שליחת Push בדיקה
+      responses:
+        '200': { description: { sent: true } }
+        '400': { description: { sent: false, error } }
+
+  /me/notifications:
+    get:
+      tags: [me]
+      summary: רשימת הודעות Push שנשלחו
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        '200': { description: { notifications: [] } }
+
+  /me/notifications/{id}/resend:
+    post:
+      tags: [me]
+      summary: שליחה מחדש של הודעה
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: { sent: true } }
+        '400': { description: { sent: false, error } }
+
+  /artists:
+    get:
+      tags: [artists]
+      summary: רשימת אומנים
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: offset
+          in: query
+          schema: { type: integer }
+      responses:
+        '200': { description: { artists: [] } }
+    post:
+      tags: [artists]
+      summary: יצירת אומן
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                image_path: { type: string, nullable: true }
+      responses:
+        '201': { description: אומן שנוצר }
+
+  /artists/{id}:
+    get:
+      tags: [artists]
+      summary: פרטי אומן
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Artist + tracks/albums }
+        '404': { description: לא נמצא }
+    put:
+      tags: [artists]
+      summary: עדכון אומן
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                image_path: { type: string, nullable: true }
+      responses:
+        '200': { description: אומן מעודכן }
+        '404': { description: לא נמצא }
+    delete:
+      tags: [artists]
+      summary: מחיקת אומן
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: נמחק }
+        '404': { description: לא נמצא }
+
+  /albums:
+    get:
+      tags: [albums]
+      summary: רשימת אלבומים
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: offset
+          in: query
+          schema: { type: integer }
+        - name: artist_id
+          in: query
+          schema: { type: integer }
+      responses:
+        '200': { description: { albums: [] } }
+    post:
+      tags: [albums]
+      summary: יצירת אלבום
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, artist_id]
+              properties:
+                name: { type: string }
+                artist_id: { type: integer }
+                image_path: { type: string, nullable: true }
+      responses:
+        '201': { description: אלבום שנוצר }
+
+  /albums/{id}:
+    get:
+      tags: [albums]
+      summary: פרטי אלבום
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Album + tracks }
+        '404': { description: לא נמצא }
+    put:
+      tags: [albums]
+      summary: עדכון אלבום
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                artist_id: { type: integer }
+                image_path: { type: string, nullable: true }
+      responses:
+        '200': { description: אלבום מעודכן }
+        '404': { description: לא נמצא }
+    delete:
+      tags: [albums]
+      summary: מחיקת אלבום
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '204': { description: נמחק }
+        '404': { description: לא נמצא }
+
+  /youtube/playlist:
+    get:
+      tags: [youtube]
+      summary: ייבוא מטא-דאטה של פלייליסט YouTube
+      parameters:
+        - name: url
+          in: query
+          schema: { type: string }
+        - name: id
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { description: פרטי פלייליסט ורשימת סרטונים }
+
+  /youtube/upload-thumbnail:
+    post:
+      tags: [youtube]
+      summary: העלאת תמונה מ-URL (thumbnail)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string }
+      responses:
+        '200': { description: { path } }
+
+  /youtube/download-track:
+    post:
+      tags: [youtube]
+      summary: הורדת שיר מ-YouTube והעלאה כ-track
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [videoId, title]
+              properties:
+                videoId: { type: string }
+                title: { type: string }
+                artist_id: { type: integer }
+                album_id: { type: integer }
+                image_path: { type: string }
+      responses:
+        '200': { description: Track שנוצר }
+        '400': { description: שגיאה בהורדה }
+
+  /admin/push-subscribers:
+    get:
+      tags: [admin]
+      summary: רשימת מנויי Push (admin)
+      responses:
+        '200': { description: רשימת משתמשים עם מנוי }
+        '403': { description: לא admin }
+
+  /admin/send-push:
+    post:
+      tags: [admin]
+      summary: שליחת Push למשתמשים נבחרים (admin)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                body: { type: string }
+                url: { type: string }
+                icon: { type: string }
+                image: { type: string }
+                badge: { type: string }
+                tag: { type: string }
+                userIds: { type: array, items: { type: integer } }
+      responses:
+        '200': { description: תוצאה }
+        '403': { description: לא admin }

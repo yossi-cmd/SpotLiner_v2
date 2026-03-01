@@ -1,0 +1,130 @@
+import { NextResponse } from "next/server";
+import { query } from "@/lib/db";
+import { optionalAuth, requireRole } from "@/lib/auth";
+import { getTracksListSelect } from "@/lib/tracks";
+import path from "path";
+import fs from "fs";
+
+const UPLOAD_DIR = process.env.UPLOAD_PATH || "./uploads/audio";
+
+export async function GET(request) {
+  try {
+    optionalAuth(request);
+    const { searchParams } = new URL(request.url);
+    const q = (searchParams.get("q") || "").trim();
+    const limit = Math.min(parseInt(searchParams.get("limit"), 10) || 50, 100);
+    const offset = parseInt(searchParams.get("offset"), 10) || 0;
+
+    const baseSelect = getTracksListSelect();
+    let result;
+    if (q) {
+      result = await query(
+        `${baseSelect} WHERE t.title ILIKE $1 OR t.artist ILIKE $1 OR t.album ILIKE $1 ORDER BY t.created_at DESC LIMIT $2 OFFSET $3`,
+        [`%${q}%`, limit, offset]
+      );
+    } else {
+      result = await query(
+        `${baseSelect} ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+    }
+    return NextResponse.json({ tracks: result.rows });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json(
+      { error: "Failed to fetch tracks" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request) {
+  try {
+    const { userId } = await requireRole(request, ["admin", "uploader"]);
+    const formData = await request.formData();
+    const file = formData.get("audio");
+    const title = (formData.get("title") || "").trim();
+    const artistIdParam = formData.get("artist_id");
+    const albumIdParam = formData.get("album_id");
+    const duration = parseInt(formData.get("duration_seconds"), 10) || 0;
+    const trackImagePath = formData.get("image_path");
+
+    if (!file || !title) {
+      return NextResponse.json(
+        { error: "No audio file uploaded or title required" },
+        { status: 400 }
+      );
+    }
+
+    let artistId = artistIdParam ? parseInt(artistIdParam, 10) : null;
+    let artistName = "";
+    let albumId = null;
+    let albumName = "";
+
+    if (artistId) {
+      const a = await query("SELECT id, name FROM artists WHERE id = $1", [
+        artistId,
+      ]);
+      if (!a.rows.length) {
+        return NextResponse.json({ error: "Artist not found" }, { status: 400 });
+      }
+      artistName = a.rows[0].name;
+    } else {
+      return NextResponse.json(
+        { error: "Artist required (select or enter)" },
+        { status: 400 }
+      );
+    }
+
+    if (albumIdParam) {
+      const al = await query(
+        "SELECT id, name, artist_id FROM albums WHERE id = $1",
+        [parseInt(albumIdParam, 10)]
+      );
+      if (al.rows.length && al.rows[0].artist_id === artistId) {
+        albumId = al.rows[0].id;
+        albumName = al.rows[0].name;
+      }
+    }
+
+    const dir = path.join(process.cwd(), UPLOAD_DIR);
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    const ext =
+      path.extname(file.name) ||
+      (file.type?.startsWith("audio/") ? ".mp3" : ".mp3");
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+    const filePath = path.join(dir, filename);
+    const bytes = await file.arrayBuffer();
+    fs.writeFileSync(filePath, Buffer.from(bytes));
+
+    const result = await query(
+      `INSERT INTO tracks (title, artist, album, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id, title, artist, album, duration_seconds, created_at, image_path`,
+      [
+        title,
+        artistName,
+        albumName,
+        artistId,
+        albumId,
+        duration,
+        filename,
+        userId,
+        trackImagePath || null,
+      ]
+    );
+    const track = result.rows[0];
+    return NextResponse.json(track, { status: 201 });
+  } catch (err) {
+    if (err.status === 401 || err.status === 403) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    console.error(err);
+    return NextResponse.json(
+      { error: "Upload failed" },
+      { status: 500 }
+    );
+  }
+}

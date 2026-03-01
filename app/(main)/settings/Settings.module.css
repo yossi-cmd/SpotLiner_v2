@@ -1,0 +1,32 @@
+.page {
+  padding: 32px;
+  padding-bottom: 120px;
+}
+
+.title {
+  margin: 0 0 24px;
+  font-size: 2rem;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.muted {
+  color: var(--text-muted);
+  margin: 4px 0;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 24px;
+  background: var(--green);
+  color: #000;
+  font-weight: 600;
+  margin-top: 8px;
+}

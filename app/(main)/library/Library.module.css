@@ -1,0 +1,61 @@
+.page {
+  padding: 32px;
+  padding-bottom: 120px;
+}
+
+.title {
+  margin: 0 0 24px;
+  font-size: 2rem;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.sectionTitle {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+.playlistGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.playlistCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  background: var(--bg-hover);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.playlistCard:hover {
+  background: var(--bg-elevated);
+}
+
+.playlistIcon {
+  font-size: 2.5rem;
+}
+
+.playlistName {
+  font-weight: 600;
+  text-align: center;
+}
+
+.trackList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loading,
+.empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}

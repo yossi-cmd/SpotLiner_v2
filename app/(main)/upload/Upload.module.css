@@ -1,0 +1,209 @@
+.page {
+  padding: 32px;
+  padding-bottom: 120px;
+}
+
+.title {
+  margin: 0 0 24px;
+  font-size: 1.5rem;
+}
+
+.error {
+  background: rgba(255, 80, 80, 0.2);
+  color: #ff6b6b;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 400px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.input {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--bg-hover);
+  background: var(--bg-base);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.btn {
+  padding: 14px;
+  border-radius: 24px;
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--green-hover);
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab,
+.tabActive {
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tabActive {
+  background: var(--green);
+  color: #000;
+}
+
+.success {
+  background: rgba(30, 215, 96, 0.2);
+  color: var(--green);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.hint {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.hint a {
+  color: var(--green);
+}
+
+.selectRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selectRow select {
+  flex: 1;
+  min-width: 180px;
+}
+
+.createLink {
+  font-size: 0.9rem;
+  color: var(--green);
+}
+
+.createLink:hover {
+  text-decoration: underline;
+}
+
+.imageRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fileInput {
+  padding: 8px 0;
+}
+
+.previewRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.previewImg {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--bg-hover);
+}
+
+.removeImg {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--bg-hover);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+}
+
+.removeImg:hover {
+  background: #333;
+  color: var(--text);
+}
+
+.albumTableWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.albumTableTitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.albumRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.albumRow .input {
+  flex: 1;
+  min-width: 160px;
+}
+
+.removeRowBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.removeRowBtn:hover {
+  background: #333;
+  color: var(--text);
+}
+
+.fileName {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  min-width: 120px;
+}

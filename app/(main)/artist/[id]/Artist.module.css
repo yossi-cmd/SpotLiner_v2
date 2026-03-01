@@ -1,0 +1,100 @@
+.page {
+  padding: 32px;
+  padding-bottom: 120px;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.artwork {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  color: var(--text-muted);
+}
+
+.artwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.name {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section h2 {
+  margin: 0 0 16px;
+}
+
+.playAll {
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: var(--green);
+  color: #000;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.trackList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.albumGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.albumCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-hover);
+  border-radius: 8px;
+}
+
+.albumImg {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-muted);
+}
+
+.albumImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loading,
+.empty {
+  padding: 48px;
+  text-align: center;
+  color: var(--text-muted);
+}

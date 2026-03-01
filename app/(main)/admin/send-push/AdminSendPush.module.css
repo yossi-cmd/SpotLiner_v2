@@ -1,0 +1,31 @@
+.page {
+  padding: 32px;
+  padding-bottom: 120px;
+}
+
+.title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+}
+
+.muted {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bg-hover);
+}
+
+.loading {
+  padding: 48px;
+  text-align: center;
+  color: var(--text-muted);
+}
