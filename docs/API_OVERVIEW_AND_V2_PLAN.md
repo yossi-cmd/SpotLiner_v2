@@ -15,7 +15,7 @@
 | **פלייליסטים** | יצירה, עריכה, הוספת/הסרת שירים, ציבורי/פרטי |
 | **משתמש (me)** | אהובים, היסטוריית השמעה, Push (הרשמה, בדיקה, הודעות, resend) |
 | **חיפוש** | חיפוש משולב (שירים, אומנים, אלבומים) |
-| **YouTube** | ייבוא פלייליסט, העלאת תמונה מ-URL, הורדת שיר (סטאב – להשלים) |
+| **YouTube** | ייבוא פלייליסט (Data API + YOUTUBE_API_KEY), העלאת תמונה מ-URL, הורדת שיר (yt-dlp) |
 | **Admin** | רשימת מנויי Push, שליחת Push (סטאב – להשלים) |
 
 ---
@@ -96,14 +96,22 @@ npm run dev
 | **me** | favorites, history, push-subscription, push-test, notifications |
 | **artists** | `GET/POST /api/v1/artists`, `GET/PUT/DELETE /api/v1/artists/:id` |
 | **albums** | `GET/POST /api/v1/albums`, `GET/PUT/DELETE /api/v1/albums/:id` |
-| **youtube** | playlist, upload-thumbnail, download-track (סטאב) |
+| **youtube** | playlist (YouTube Data API), upload-thumbnail, download-track (דורש yt-dlp בשרת) |
 | **admin** | push-subscribers, send-push (סטאב) |
 
 אימות: `Authorization: Bearer <token>`. סטרימינג: תמיכה ב-`Range` ו-`?token=...` ב-stream.
 
 ---
 
-## 4. השלמות אופציונליות
-- ייבוא YouTube (playlist, download-track) – דורש שירות חיצוני (yt-dlp וכו').
+## 4. YouTube – ייבוא פלייליסט
+- **מפתח API**: הגדר `YOUTUBE_API_KEY` ב-.env (ממשק YouTube Data API v3 ב-Google Cloud Console).
+- **טעינת פלייליסט**: `GET /api/v1/youtube/playlist?url=...` או `?id=PLxxx` – מחזיר כותרת, תמונת ממוזערת ורשימת סרטונים.
+- **העלאת תמונה**: `POST /api/v1/youtube/upload-thumbnail` עם `{ url }` – שומר תמונה מ-URL.
+- **הורדת אודיו**: `POST /api/v1/youtube/download-track` – דורש **yt-dlp** מותקן על השרת. התקנה:
+  - **macOS (Homebrew)**: `brew install yt-dlp`
+  - **Linux**: `sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && sudo chmod +x /usr/local/bin/yt-dlp`
+  - אם yt-dlp לא מותקן, ה-API מחזיר 503 עם הודעה להתקנה.
+
+## 5. השלמות אופציונליות
 - Admin send-push – השלמת לוגיקת web-push לפי משתמשים נבחרים.
 - דף תיעוד API (Swagger UI) ב-`/api/docs` על בסיס `api/openapi.yaml`.

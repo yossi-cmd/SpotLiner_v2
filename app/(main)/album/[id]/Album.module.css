@@ -5,9 +5,9 @@
 
 .hero {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 28px;
   margin-bottom: 24px;
 }
 
@@ -76,7 +76,7 @@
 .titleRow {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
   gap: 8px;
 }
 
@@ -123,15 +123,35 @@
   color: var(--text-muted);
 }
 
-.heroActions {
+.heroDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 8px;
+}
+
+.heroImage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 200px;
+}
+
+.heroButtons {
   display: flex;
   gap: 12px;
   margin-top: 8px;
 }
 
+.heroActions {
+  display: flex;
+  gap: 12px;
+}
+
 .editBtn {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 10px 24px;
+  border-radius: 24px;
   background: var(--bg-hover);
   font-size: 0.9rem;
 }
@@ -141,8 +161,8 @@
 }
 
 .deleteBtn {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 10px 24px;
+  border-radius: 24px;
   background: rgba(255, 80, 80, 0.2);
   color: #ff6b6b;
   font-size: 0.9rem;
@@ -158,7 +178,6 @@
   background: var(--green);
   color: #000;
   font-weight: 700;
-  margin-bottom: 24px;
 }
 
 .trackList {

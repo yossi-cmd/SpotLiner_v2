@@ -5,10 +5,18 @@
 
 .hero {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 24px;
+}
+
+.heroImage {
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 8px;
+  width: 200px;
 }
 
 .artwork {
@@ -68,7 +76,14 @@
 .nameRow {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: start;
+  gap: 8px;
+}
+
+.heroDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
   gap: 8px;
 }
 
@@ -78,7 +93,7 @@
   border: 1px solid var(--bg-hover);
   background: var(--bg-elevated);
   color: var(--text);
-  font-size: 1.25rem;
+  font-size: 1rem;
   min-width: 200px;
 }
 
@@ -115,15 +130,20 @@
   color: var(--text-muted);
 }
 
-.heroActions {
+.heroButtons {
   display: flex;
   gap: 12px;
   margin-top: 8px;
 }
 
+.heroActions {
+  display: flex;
+  gap: 12px;
+}
+
 .editBtn {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 10px 24px;
+  border-radius: 24px;
   background: var(--bg-hover);
   font-size: 0.9rem;
 }
@@ -133,8 +153,8 @@
 }
 
 .deleteBtn {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 10px 24px;
+  border-radius: 24px;
   background: rgba(255, 80, 80, 0.2);
   color: #ff6b6b;
   font-size: 0.9rem;
@@ -144,21 +164,20 @@
   background: rgba(255, 80, 80, 0.35);
 }
 
+.playBtn {
+  padding: 10px 24px;
+  border-radius: 24px;
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+}
+
 .section {
   margin-bottom: 32px;
 }
 
 .section h2 {
   margin: 0 0 16px;
-}
-
-.playAll {
-  padding: 8px 20px;
-  border-radius: 20px;
-  background: var(--green);
-  color: #000;
-  font-weight: 600;
-  margin-bottom: 16px;
 }
 
 .trackList {

@@ -180,109 +180,115 @@ export default function AlbumPage() {
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
-        <div className={styles.artwork}>
-          {displayImageUrl ? (
-            <img src={displayImageUrl} alt="" />
-          ) : (
-            <span>♪</span>
-          )}
-        </div>
-        {editing && (
-          <div className={styles.editImageRow}>
-            <label className={styles.fileLabel}>
-              החלף תמונה
-              <input
-                type="file"
-                accept="image/*"
-                onChange={onImageChange}
-                className={styles.fileInput}
-              />
-            </label>
-            {(editImagePath !== undefined ? editImagePath : album.image_path) && (
-              <button
-                type="button"
-                className={styles.removeImgBtn}
-                onClick={() => setEditImagePath(null)}
-              >
-                הסר תמונת אלבום
-              </button>
+        <div className={styles.heroImage}>
+          <div className={styles.artwork}>
+            {displayImageUrl ? (
+              <img src={displayImageUrl} alt="" />
+            ) : (
+              <span>♪</span>
             )}
           </div>
-        )}
-        <div className={styles.titleRow}>
-          {editing ? (
-            <>
-              <input
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className={styles.editInput}
-                placeholder="שם האלבום"
-              />
-              <select
-                value={editArtistId}
-                onChange={(e) => setEditArtistId(e.target.value)}
-                className={styles.editInput}
-              >
-                {artists.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-              <div className={styles.editActions}>
+          {editing && (
+            <div className={styles.editImageRow}>
+              <label className={styles.fileLabel}>
+                החלף תמונה
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={onImageChange}
+                  className={styles.fileInput}
+                />
+              </label>
+              {(editImagePath !== undefined ? editImagePath : album.image_path) && (
                 <button
                   type="button"
-                  className={styles.saveBtn}
-                  onClick={saveAlbum}
-                  disabled={saving}
+                  className={styles.removeImgBtn}
+                  onClick={() => setEditImagePath(null)}
                 >
-                  {saving ? "שומר..." : "שמור"}
+                  הסר תמונת אלבום
                 </button>
-                <button
-                  type="button"
-                  className={styles.cancelBtn}
-                  onClick={() => setEditing(false)}
-                >
-                  ביטול
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <h1 className={styles.title}>{album.name}</h1>
-              <Link
-                href={`/artist/${album.artist_id}`}
-                className={styles.artist}
-              >
-                {album.artist_name}
-              </Link>
-            </>
+              )}
+            </div>
           )}
         </div>
-        <span className={styles.meta}>
-          {(album.tracks || []).length} שירים
-        </span>
-        <button type="button" className={styles.playBtn} onClick={playAll}>
-          השמע
-        </button>
-        {canEdit && !editing && (
-          <div className={styles.heroActions}>
-            <button
-              type="button"
-              className={styles.editBtn}
-              onClick={startEdit}
-            >
-              ערוך אלבום
-            </button>
-            <button
-              type="button"
-              className={styles.deleteBtn}
-              onClick={handleDeleteAlbum}
-            >
-              מחק אלבום
-            </button>
+        <div className={styles.heroDetails}>
+          <div className={styles.titleRow}>
+            {editing ? (
+              <>
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className={styles.editInput}
+                  placeholder="שם האלבום"
+                />
+                <select
+                  value={editArtistId}
+                  onChange={(e) => setEditArtistId(e.target.value)}
+                  className={styles.editInput}
+                >
+                  {artists.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+                <div className={styles.editActions}>
+                  <button
+                    type="button"
+                    className={styles.saveBtn}
+                    onClick={saveAlbum}
+                    disabled={saving}
+                  >
+                    {saving ? "שומר..." : "שמור"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.cancelBtn}
+                    onClick={() => setEditing(false)}
+                  >
+                    ביטול
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className={styles.title}>{album.name}</h1>
+                <Link
+                  href={`/artist/${album.artist_id}`}
+                  className={styles.artist}
+                >
+                  {album.artist_name}
+                </Link>
+              </>
+            )}
           </div>
-        )}
+          <span className={styles.meta}>
+            {(album.tracks || []).length} שירים
+          </span>
+          <div className={styles.heroButtons}>
+            <button type="button" className={styles.playBtn} onClick={playAll}>
+              השמע
+            </button>
+            {canEdit && !editing && (
+              <div className={styles.heroActions}>
+                <button
+                  type="button"
+                  className={styles.editBtn}
+                  onClick={startEdit}
+                >
+                  ערוך אלבום
+                </button>
+                <button
+                  type="button"
+                  className={styles.deleteBtn}
+                  onClick={handleDeleteAlbum}
+                >
+                  מחק אלבום
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className={styles.trackList}>

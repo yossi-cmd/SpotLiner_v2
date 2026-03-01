@@ -207,3 +207,58 @@
   color: var(--text-muted);
   min-width: 120px;
 }
+
+.youtubeBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--bg-hover);
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.youtubeTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.youtubeHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.youtubeLoadBtn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--bg-elevated);
+  font-size: 0.9rem;
+  align-self: flex-start;
+}
+
+.youtubeLoadBtn:hover:not(:disabled) {
+  background: #333;
+}
+
+.youtubeLoadBtn:disabled {
+  opacity: 0.7;
+}
+
+.youtubeDownloadBtn {
+  padding: 10px 20px;
+  border-radius: 24px;
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+  align-self: flex-start;
+}
+
+.youtubeDownloadBtn:hover:not(:disabled) {
+  background: var(--green-hover);
+}
+
+.youtubeDownloadBtn:disabled {
+  opacity: 0.8;
+}
