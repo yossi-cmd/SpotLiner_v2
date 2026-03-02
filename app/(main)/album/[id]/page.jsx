@@ -325,6 +325,7 @@ export default function AlbumPage() {
               track={track}
               index={i}
               showAlbum={false}
+              hideArtwork
               canEditTrack={canEditTrack(track)}
               onEditTrack={setTrackToEdit}
               onDeleteTrack={handleDeleteTrack}

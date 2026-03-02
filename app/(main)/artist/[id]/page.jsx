@@ -339,6 +339,7 @@ export default function ArtistPage() {
                 track={track}
                 index={i}
                 showAlbum={true}
+                hideArtwork
                 canEditTrack={canEditTrack(track)}
                 onEditTrack={setTrackToEdit}
                 onDeleteTrack={handleDeleteTrack}

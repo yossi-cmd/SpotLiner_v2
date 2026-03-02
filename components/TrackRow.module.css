@@ -179,12 +179,28 @@ a.album:hover {
   display: none;
 }
 
+.row.hideArtwork .artwork {
+  display: none;
+}
+
+.row.hideArtwork {
+  grid-template-columns: 32px 1fr auto 60px 130px;
+}
+
+.row.hideArtwork.noAlbum {
+  grid-template-columns: 32px 1fr 60px 130px;
+}
+
 @media (max-width: 768px) {
   .row {
-    grid-template-columns: 32px 1fr 48px !important;
+    grid-template-columns: 36px 44px 1fr 48px !important;
     gap: 8px 12px;
     padding: 10px 12px;
     min-height: 56px;
+  }
+
+  .row.hideArtwork {
+    grid-template-columns: 32px 1fr 48px !important;
   }
 
   .row .album,
@@ -192,16 +208,16 @@ a.album:hover {
     display: none;
   }
 
-  .row:not(.noAlbum) {
-    grid-template-columns: 32px 1fr 48px;
+  .row:not(.noAlbum):not(.hideArtwork) {
+    grid-template-columns: 36px 44px 1fr 48px !important;
+  }
+
+  .row:not(.noAlbum).hideArtwork {
+    grid-template-columns: 32px 1fr 48px !important;
   }
 
   .album {
     display: none !important;
-  }
-
-  .artwork {
-    display: none;
   }
 
   .duration {

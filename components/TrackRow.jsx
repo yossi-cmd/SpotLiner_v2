@@ -30,6 +30,7 @@ export default function TrackRow({
   track,
   index,
   showAlbum = true,
+  hideArtwork = false,
   playlistId,
   onRemoveFromPlaylist,
   canEditTrack,
@@ -140,7 +141,7 @@ export default function TrackRow({
       tabIndex={0}
       onClick={play}
       onKeyDown={(e) => e.key === "Enter" && play()}
-      className={`${styles.row} ${showAlbum ? "" : styles.noAlbum} ${isActive ? styles.active : ""}`}
+      className={`${styles.row} ${showAlbum ? "" : styles.noAlbum} ${hideArtwork ? styles.hideArtwork : ""} ${isActive ? styles.active : ""}`}
     >
       <span className={styles.index}>
         {index != null ? index + 1 : "—"}
