@@ -17,6 +17,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
 import { IconMoreVertical } from "@/components/Icons";
+import AlbumCard from "@/components/AlbumCard";
 import styles from "./Artist.module.css";
 
 export default function ArtistPage() {
@@ -300,28 +301,13 @@ export default function ArtistPage() {
           <h2>אלבומים</h2>
           <div className={styles.albumGrid}>
             {artist.albums.map((al) => (
-              <Link
+              <AlbumCard
                 key={al.id}
+                album={al}
                 href={`/album/${al.id}`}
-                className={styles.albumCard}
-              >
-                <div className={styles.albumImg}>
-                  {al.image_path ? (
-                    <img src={getImageUrl(al.image_path)} alt="" />
-                  ) : (
-                    <span>♪</span>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.albumPlayBtn}
-                    onClick={(e) => handlePlayAlbumFromGrid(al.id, e)}
-                    aria-label={`השמע את האלבום ${al.name}`}
-                  >
-                    השמע
-                  </button>
-                </div>
-                <span>{al.name}</span>
-              </Link>
+                onPlay={handlePlayAlbumFromGrid}
+                showArtistName={true}
+              />
             ))}
           </div>
         </section>

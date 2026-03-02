@@ -1,7 +1,13 @@
 -- SpotLiner v2 – unified schema (Next.js)
 -- Run: node scripts/migrate.js (with DATABASE_URL set)
 
-CREATE TYPE user_role AS ENUM ('user', 'uploader', 'admin');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE user_role AS ENUM ('user', 'uploader', 'admin');
+  END IF;
+END
+$$;
 
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
