@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  uploadTrack,
+  uploadTrackWithProgress,
   getArtists,
   getAlbums,
   uploadImage,
@@ -58,6 +58,7 @@ export default function Upload() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     if (!canUpload) {
@@ -157,6 +158,7 @@ export default function Upload() {
     setLoading(true);
     setError("");
     setSuccess(false);
+    setToast(null);
     try {
       let resolvedAlbumId = albumId ? parseInt(albumId, 10) : undefined;
       if (albumId === NEW_ALBUM_VALUE && newAlbumName?.trim()) {
@@ -167,14 +169,22 @@ export default function Upload() {
         );
         resolvedAlbumId = created.id;
       }
-      const { file: fileToUpload, durationSeconds } = await compressAudioIfNeeded(file);
-      await uploadTrack(fileToUpload, {
-        title: title.trim(),
-        artist_id: parseInt(artistId, 10),
-        album_id: resolvedAlbumId,
-        duration_seconds: durationSeconds,
-        image_path: imagePath || undefined,
-      });
+      const { file: fileToUpload, durationSeconds } = await compressAudioIfNeeded(
+        file,
+        undefined,
+        (p) => setToast({ type: "compression", percent: p })
+      );
+      await uploadTrackWithProgress(
+        fileToUpload,
+        {
+          title: title.trim(),
+          artist_id: parseInt(artistId, 10),
+          album_id: resolvedAlbumId,
+          duration_seconds: durationSeconds,
+          image_path: imagePath || undefined,
+        },
+        (p) => setToast({ type: "upload", percent: p })
+      );
       setSuccess(true);
       setFile(null);
       setTitle("");
@@ -189,6 +199,7 @@ export default function Upload() {
       setError(err.message || "העלאה נכשלה");
     } finally {
       setLoading(false);
+      setToast(null);
     }
   };
 
@@ -215,6 +226,7 @@ export default function Upload() {
     setLoading(true);
     setError("");
     setSuccess(false);
+    setToast(null);
     try {
       let resolvedAlbumId = null;
       if (useNewAlbum) {
@@ -229,16 +241,26 @@ export default function Upload() {
       }
       const aid = parseInt(artistId, 10);
       const trackImagePath = useNewAlbum ? undefined : imagePath || undefined;
+      const total = rowsWithFile.length;
       for (let i = 0; i < rowsWithFile.length; i++) {
         const row = rowsWithFile[i];
-        const { file: fileToUpload, durationSeconds: durationSec } = await compressAudioIfNeeded(row.file);
-        await uploadTrack(fileToUpload, {
-          title: (row.title || getTitleFromFileName(row.file?.name) || "ללא כותרת").trim(),
-          artist_id: aid,
-          album_id: resolvedAlbumId || undefined,
-          duration_seconds: durationSec,
-          image_path: trackImagePath,
-        });
+        const current = i + 1;
+        const { file: fileToUpload, durationSeconds: durationSec } = await compressAudioIfNeeded(
+          row.file,
+          undefined,
+          (p) => setToast({ type: "compression", percent: p, current, total })
+        );
+        await uploadTrackWithProgress(
+          fileToUpload,
+          {
+            title: (row.title || getTitleFromFileName(row.file?.name) || "ללא כותרת").trim(),
+            artist_id: aid,
+            album_id: resolvedAlbumId || undefined,
+            duration_seconds: durationSec,
+            image_path: trackImagePath,
+          },
+          (p) => setToast({ type: "upload", percent: p, current, total })
+        );
       }
       setUploadedCount(rowsWithFile.length);
       setSuccess(true);
@@ -252,6 +274,7 @@ export default function Upload() {
       setError(err.message || "העלאה נכשלה");
     } finally {
       setLoading(false);
+      setToast(null);
     }
   };
 
@@ -551,6 +574,24 @@ export default function Upload() {
               : "העלה שיר"}
         </button>
       </form>
+
+      {toast && (
+        <div className={styles.toast} role="status" aria-live="polite">
+          <span className={styles.toastLabel}>
+            {toast.type === "compression"
+              ? toast.total
+                ? `מכווץ שיר ${toast.current}/${toast.total}`
+                : "מכווץ"
+              : toast.total
+                ? `מעלה שיר ${toast.current}/${toast.total}`
+                : "מעלה"}
+            … {toast.percent}%
+          </span>
+          <div className={styles.toastTrack}>
+            <div className={styles.toastBar} style={{ width: `${toast.percent}%` }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
