@@ -57,8 +57,20 @@
   }
 
   .mobileLogo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 700;
     font-size: 1.25rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .mobileLogoIcon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
   }
 
   .main {

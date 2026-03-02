@@ -16,6 +16,7 @@ import { usePlayerStore } from "@/lib/store/playerStore";
 import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
+import { IconMoreVertical } from "@/components/Icons";
 import styles from "./Album.module.css";
 
 export default function AlbumPage() {
@@ -33,6 +34,7 @@ export default function AlbumPage() {
   const [artists, setArtists] = useState([]);
   const [saving, setSaving] = useState(false);
   const [trackToEdit, setTrackToEdit] = useState(null);
+  const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const { setCurrentTrack, setQueue, currentTrack } = usePlayerStore();
 
   const canEdit =
@@ -179,6 +181,42 @@ export default function AlbumPage() {
 
   return (
     <div className={styles.page}>
+      {canEdit && !editing && (
+        <div className={styles.pageMenuWrap}>
+          <button
+            type="button"
+            className={styles.pageMenuButton}
+            onClick={() => setPageMenuOpen((v) => !v)}
+            aria-label="פעולות אלבום"
+          >
+            <IconMoreVertical />
+          </button>
+          {pageMenuOpen && (
+            <div className={styles.pageMenuDropdown}>
+              <button
+                type="button"
+                className={styles.pageMenuItem}
+                onClick={() => {
+                  setPageMenuOpen(false);
+                  startEdit();
+                }}
+              >
+                ערוך אלבום
+              </button>
+              <button
+                type="button"
+                className={styles.pageMenuItemDanger}
+                onClick={() => {
+                  setPageMenuOpen(false);
+                  handleDeleteAlbum();
+                }}
+              >
+                מחק אלבום
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       <div className={styles.hero}>
         <div className={styles.heroImage}>
           <div className={styles.artwork}>
@@ -251,42 +289,28 @@ export default function AlbumPage() {
                 </div>
               </>
             ) : (
-              <>
-                <h1 className={styles.title}>{album.name}</h1>
+              <h1 className={styles.title}>{album.name}</h1>
+            )}
+          </div>
+          <div className={styles.metaRow}>
+            <div className={styles.metaText}>
+              {album.artist_id ? (
                 <Link
                   href={`/artist/${album.artist_id}`}
                   className={styles.artist}
                 >
                   {album.artist_name}
                 </Link>
-              </>
-            )}
-          </div>
-          <span className={styles.meta}>
-            {(album.tracks || []).length} שירים
-          </span>
-          <div className={styles.heroButtons}>
+              ) : (
+                <span className={styles.artist}>{album.artist_name}</span>
+              )}
+              <span className={styles.meta}>
+                {(album.tracks || []).length} שירים
+              </span>
+            </div>
             <button type="button" className={styles.playBtn} onClick={playAll}>
               השמע
             </button>
-            {canEdit && !editing && (
-              <div className={styles.heroActions}>
-                <button
-                  type="button"
-                  className={styles.editBtn}
-                  onClick={startEdit}
-                >
-                  ערוך אלבום
-                </button>
-                <button
-                  type="button"
-                  className={styles.deleteBtn}
-                  onClick={handleDeleteAlbum}
-                >
-                  מחק אלבום
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>

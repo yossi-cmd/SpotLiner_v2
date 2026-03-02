@@ -206,7 +206,7 @@ export default function TrackRow({
       </span>
       <div className={styles.actions}>
         {user && (
-          <>
+          <div className={styles.actionsInline}>
             <button
               type="button"
               className={styles.actionBtn}
@@ -227,7 +227,7 @@ export default function TrackRow({
                 style={{ color: isFavorite ? "var(--green)" : undefined }}
               />
             </button>
-          </>
+          </div>
         )}
         {showMenu && (
           <div className={styles.menuWrap} ref={triggerRef}>
@@ -287,6 +287,34 @@ export default function TrackRow({
                       {(canEditTrack && (onEditTrack || onDeleteTrack)) && (
                         <div className={styles.menuDivider} />
                       )}
+                      <button
+                        type="button"
+                        className={styles.menuItem}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMenuOpen(false);
+                          addToQueueClick(e);
+                        }}
+                      >
+                        <IconPlus />
+                        הוסף לתור
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.menuItem}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          setMenuOpen(false);
+                          await toggleFavorite(e);
+                        }}
+                      >
+                        <IconHeart
+                          filled={isFavorite}
+                          style={{ color: isFavorite ? "var(--green)" : undefined }}
+                        />
+                        {isFavorite ? "הסר מאהובים" : "הוסף לאהובים"}
+                      </button>
+                      <div className={styles.menuDivider} />
                       <div className={styles.menuSection}>הוסף לפלייליסט</div>
                       {playlists.length === 0 ? (
                         <div className={styles.menuItemDisabled}>

@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen = false, onClose }) {
       >
         <div className={styles.logoRow}>
           <Link href="/" className={styles.logo} onClick={handleNavClick}>
-            <span className={styles.logoIcon}>S</span>
+            <img src="/favicon.svg" alt="" className={styles.logoIcon} aria-hidden />
             ספוטליינר
           </Link>
           <button

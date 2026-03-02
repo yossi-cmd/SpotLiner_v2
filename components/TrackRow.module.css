@@ -91,6 +91,11 @@ a.album:hover {
   opacity: 0.7;
 }
 
+.actionsInline {
+  display: flex;
+  gap: 4px;
+}
+
 .row:hover .actions {
   opacity: 1;
 }
@@ -176,10 +181,10 @@ a.album:hover {
 
 @media (max-width: 768px) {
   .row {
-    grid-template-columns: 36px 44px 1fr auto 80px;
-    gap: 10px;
+    grid-template-columns: 32px 1fr 48px !important;
+    gap: 8px 12px;
     padding: 10px 12px;
-    min-height: 60px;
+    min-height: 56px;
   }
 
   .row .album,
@@ -188,15 +193,31 @@ a.album:hover {
   }
 
   .row:not(.noAlbum) {
-    grid-template-columns: 36px 44px 1fr auto 80px;
+    grid-template-columns: 32px 1fr 48px;
   }
 
   .album {
     display: none !important;
   }
 
+  .artwork {
+    display: none;
+  }
+
   .duration {
-    font-size: 0.8rem;
+    display: none;
+  }
+
+  .actionsInline {
+    display: none;
+  }
+
+  .index {
+    font-size: 0.85rem;
+  }
+
+  .info {
+    min-width: 0;
   }
 
   .menuDropdown {

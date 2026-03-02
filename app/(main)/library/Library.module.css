@@ -32,6 +32,7 @@
   background: var(--bg-hover);
   border-radius: 8px;
   transition: background 0.2s;
+  position: relative;
 }
 
 .playlistCard:hover {
@@ -47,6 +48,29 @@
   text-align: center;
 }
 
+.playlistPlayBtn {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .playlistCard:hover .playlistPlayBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .trackList {
   display: flex;
   flex-direction: column;
@@ -58,4 +82,137 @@
   padding: 24px;
   text-align: center;
   color: var(--text-muted);
+}
+
+/* New playlist card */
+.playlistCardNew {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  background: var(--bg-hover);
+  border-radius: 8px;
+  transition: background 0.2s;
+  border: 2px dashed var(--text-muted);
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.playlistCardNew:hover {
+  background: var(--bg-elevated);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.playlistIconNew {
+  font-size: 2.5rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* Create playlist modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 380px;
+  border: 1px solid var(--bg-hover);
+}
+
+.modalTitle {
+  margin: 0 0 20px;
+  font-size: 1.25rem;
+}
+
+.modalError {
+  background: rgba(255, 80, 80, 0.2);
+  color: #ff6b6b;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modalLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.modalInput {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--bg-hover);
+  background: var(--bg-base);
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.modalInput:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.modalCancel {
+  padding: 10px 20px;
+  border-radius: 24px;
+  background: var(--bg-hover);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.modalCancel:hover:not(:disabled) {
+  background: #333;
+}
+
+.modalSubmit {
+  padding: 10px 20px;
+  border-radius: 24px;
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
+.modalSubmit:hover:not(:disabled) {
+  background: var(--green-hover);
+}
+
+.modalSubmit:disabled,
+.modalCancel:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }

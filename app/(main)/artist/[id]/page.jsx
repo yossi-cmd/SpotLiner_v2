@@ -10,11 +10,13 @@ import {
   uploadImage,
   deleteTrack,
   deleteArtist,
+  getAlbum,
 } from "@/lib/api";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
+import { IconMoreVertical } from "@/components/Icons";
 import styles from "./Artist.module.css";
 
 export default function ArtistPage() {
@@ -30,6 +32,7 @@ export default function ArtistPage() {
   const [editImagePath, setEditImagePath] = useState(undefined);
   const [saving, setSaving] = useState(false);
   const [trackToEdit, setTrackToEdit] = useState(null);
+  const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const { setCurrentTrack, setQueue, currentTrack } = usePlayerStore();
 
   const canEdit =
@@ -132,6 +135,23 @@ export default function ArtistPage() {
     }
   };
 
+  const handlePlayAlbumFromGrid = async (albumId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    try {
+      const data = await getAlbum(albumId);
+      const tracks = data?.tracks || [];
+      if (!tracks.length) return;
+      setQueue(tracks, 0);
+      setCurrentTrack(tracks[0]);
+      usePlayerStore.getState().setIsPlaying(true);
+    } catch {
+      // ignore
+    }
+  };
+
   const handleDeleteArtist = async () => {
     if (
       !window.confirm(
@@ -163,6 +183,42 @@ export default function ArtistPage() {
 
   return (
     <div className={styles.page}>
+      {canEdit && !editing && (
+        <div className={styles.pageMenuWrap}>
+          <button
+            type="button"
+            className={styles.pageMenuButton}
+            onClick={() => setPageMenuOpen((v) => !v)}
+            aria-label="פעולות אומן"
+          >
+            <IconMoreVertical />
+          </button>
+          {pageMenuOpen && (
+            <div className={styles.pageMenuDropdown}>
+              <button
+                type="button"
+                className={styles.pageMenuItem}
+                onClick={() => {
+                  setPageMenuOpen(false);
+                  startEdit();
+                }}
+              >
+                ערוך אומן
+              </button>
+              <button
+                type="button"
+                className={styles.pageMenuItemDanger}
+                onClick={() => {
+                  setPageMenuOpen(false);
+                  handleDeleteArtist();
+                }}
+              >
+                מחק אומן
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       <div className={styles.hero}>
         <div className={styles.heroImage}>
           <div className={styles.artwork}>
@@ -226,31 +282,15 @@ export default function ArtistPage() {
               <h1 className={styles.name}>{artist.name}</h1>
             )}
           </div>
-          <span className={styles.meta}>
-            {(artist.tracks || []).length} שירים
-          </span>
-          <div className={styles.heroButtons}>
+          <div className={styles.metaRow}>
+            <div className={styles.metaText}>
+              <span className={styles.meta}>
+                {(artist.tracks || []).length} שירים
+              </span>
+            </div>
             <button type="button" className={styles.playBtn} onClick={playAll}>
               השמע
             </button>
-            {canEdit && !editing && (
-              <div className={styles.heroActions}>
-                <button
-                  type="button"
-                  className={styles.editBtn}
-                  onClick={startEdit}
-                >
-                  ערוך אומן
-                </button>
-                <button
-                  type="button"
-                  className={styles.deleteBtn}
-                  onClick={handleDeleteArtist}
-                >
-                  מחק אומן
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -271,6 +311,14 @@ export default function ArtistPage() {
                   ) : (
                     <span>♪</span>
                   )}
+                  <button
+                    type="button"
+                    className={styles.albumPlayBtn}
+                    onClick={(e) => handlePlayAlbumFromGrid(al.id, e)}
+                    aria-label={`השמע את האלבום ${al.name}`}
+                  >
+                    השמע
+                  </button>
                 </div>
                 <span>{al.name}</span>
               </Link>

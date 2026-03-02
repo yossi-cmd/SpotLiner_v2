@@ -5,6 +5,7 @@ import { getArtists } from "@/lib/api";
 import Link from "next/link";
 import { getImageUrl } from "@/lib/api";
 import { useAuthStore } from "@/lib/store/authStore";
+import { usePlayerStore } from "@/lib/store/playerStore";
 import styles from "./Artists.module.css";
 
 export default function Artists() {
@@ -12,6 +13,7 @@ export default function Artists() {
   const canUpload = user && ["admin", "uploader"].includes(user.role);
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { setQueue, setCurrentTrack, setIsPlaying } = usePlayerStore();
 
   useEffect(() => {
     getArtists()
@@ -19,6 +21,25 @@ export default function Artists() {
       .catch(() => setArtists([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const handlePlayArtist = async (artistId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    try {
+      const res = await fetch(`/api/artist/${artistId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const tracks = data?.tracks || [];
+      if (!tracks.length) return;
+      setQueue(tracks, 0);
+      setCurrentTrack(tracks[0]);
+      setIsPlaying(true);
+    } catch {
+      // ignore
+    }
+  };
 
   if (loading) return <div className={styles.loading}>טוען...</div>;
 
@@ -41,6 +62,14 @@ export default function Artists() {
               ) : (
                 <span>♪</span>
               )}
+              <button
+                type="button"
+                className={styles.playOverlayBtn}
+                onClick={(e) => handlePlayArtist(a.id, e)}
+                aria-label="השמע את כל שירי האומן"
+              >
+                השמע
+              </button>
             </div>
             <span className={styles.name}>{a.name}</span>
           </Link>
