@@ -98,7 +98,6 @@ export default function Layout({ children }) {
           <IconMenu />
         </button>
         <Link href="/" className={styles.mobileLogo}>
-          <img src="/favicon.svg" alt="" className={styles.mobileLogoIcon} aria-hidden />
           ספוטליינר
         </Link>
       </header>
