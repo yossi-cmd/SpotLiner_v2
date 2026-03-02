@@ -80,8 +80,11 @@ export default function Player() {
 
   const onEnded = () => {
     const nextTrack = next();
-    if (nextTrack) setCurrentTrack(nextTrack);
-    else {
+    if (nextTrack) {
+      setCurrentTrack(nextTrack);
+      setProgress(0);
+      setIsPlaying(true);
+    } else {
       setIsPlaying(false);
       setProgress(0);
     }

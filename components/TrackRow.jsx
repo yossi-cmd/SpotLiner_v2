@@ -159,34 +159,36 @@ export default function TrackRow({
       </div>
       <div className={styles.info}>
         <span className={styles.title}>{track.title}</span>
-        {track.artist_id ? (
-          <Link
-            href={`/artist/${track.artist_id}`}
-            className={styles.artist}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {track.artist || "—"}
-          </Link>
-        ) : (
-          <span className={styles.artist}>{track.artist || "—"}</span>
-        )}
-        {Array.isArray(track.featured_artists) &&
-          track.featured_artists.length > 0 && (
-            <span className={styles.artist}>
-              {" feat. "}
-              {track.featured_artists.map((a, i) => (
-                <span key={a.id}>
-                  {i > 0 && ", "}
-                  <Link
-                    href={`/artist/${a.id}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {a.name}
-                  </Link>
-                </span>
-              ))}
-            </span>
+        <div>
+          {track.artist_id ? (
+            <Link
+              href={`/artist/${track.artist_id}`}
+              className={styles.artist}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {track.artist || "—"}
+            </Link>
+          ) : (
+            <span className={styles.artist}>{track.artist || "—"}</span>
           )}
+          {Array.isArray(track.featured_artists) &&
+            track.featured_artists.length > 0 && (
+              <span className={styles.artist}>
+                {", "}
+                {track.featured_artists.map((a, i) => (
+                  <span key={a.id}>
+                    {i > 0 && ", "}
+                    <Link
+                      href={`/artist/${a.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {a.name}
+                    </Link>
+                  </span>
+                ))}
+              </span>
+            )}
+          </div>
       </div>
       {showAlbum && (
         <div className={styles.album}>

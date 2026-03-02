@@ -75,7 +75,8 @@
 }
 
 a.artist:hover,
-.album a:hover {
+.album a:hover,
+.artist a:hover {
   color: var(--green);
   text-decoration: underline;
 }
