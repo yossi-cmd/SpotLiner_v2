@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { search as searchApi, getImageUrl, deleteTrack } from "@/lib/api";
+import { search as searchApi, deleteTrack, getAlbum, getArtist } from "@/lib/api";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
+import ArtistCard from "@/components/ArtistCard";
+import AlbumCard from "@/components/AlbumCard";
 import Link from "next/link";
 import styles from "./Search.module.css";
 
@@ -15,7 +17,8 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [trackToEdit, setTrackToEdit] = useState(null);
   const { user } = useAuthStore();
-  const { setQueue, setCurrentTrack, currentTrack } = usePlayerStore();
+  const { setQueue, setCurrentTrack, currentTrack, setIsPlaying } =
+    usePlayerStore();
 
   const canEditTrack = (track) =>
     user && (user.role === "admin" || track.uploaded_by === user.id);
@@ -60,6 +63,40 @@ export default function Search() {
     }
   };
 
+  const handlePlayArtist = async (artistId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    try {
+      const data = await getArtist(artistId);
+      const tracks = data?.tracks || [];
+      if (!tracks.length) return;
+      setQueue(tracks, 0);
+      setCurrentTrack(tracks[0]);
+      setIsPlaying(true);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handlePlayAlbum = async (albumId, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    try {
+      const data = await getAlbum(albumId);
+      const tracks = data?.tracks || [];
+      if (!tracks.length) return;
+      setQueue(tracks, 0);
+      setCurrentTrack(tracks[0]);
+      setIsPlaying(true);
+    } catch {
+      // ignore
+    }
+  };
+
   const playAll = (tracks) => {
     if (!tracks?.length) return;
     setQueue(tracks);
@@ -88,37 +125,34 @@ export default function Search() {
         <div className={styles.empty}>לא נמצאו תוצאות</div>
       )}
 
-      {!loading && (results.artists?.length > 0 || results.albums?.length > 0) && (
+      {!loading && results.artists?.length > 0 && (
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>אומנים</h2>
           <div className={styles.grid}>
-            {results.artists?.map((a) => (
-              <Link key={a.id} href={`/artist/${a.id}`} className={styles.card}>
-                <div className={styles.cardImg}>
-                  {a.image_path ? (
-                    <img src={getImageUrl(a.image_path)} alt="" />
-                  ) : (
-                    <span>♪</span>
-                  )}
-                </div>
-                <span className={styles.cardName}>{a.name}</span>
-              </Link>
+            {results.artists?.map((artist) => (
+              <ArtistCard
+                key={artist.id}
+                artist={artist}
+                href={`/artist/${artist.id}`}
+                onPlay={handlePlayArtist}
+              />
             ))}
           </div>
+        </div>
+      )}
+
+      {!loading && results.albums?.length > 0 && (
+        <div className={styles.section}>
           <h2 className={styles.sectionTitle}>אלבומים</h2>
           <div className={styles.grid}>
-            {results.albums?.map((al) => (
-              <Link key={al.id} href={`/album/${al.id}`} className={styles.card}>
-                <div className={styles.cardImg}>
-                  {al.image_path ? (
-                    <img src={getImageUrl(al.image_path)} alt="" />
-                  ) : (
-                    <span>♪</span>
-                  )}
-                </div>
-                <span className={styles.cardName}>{al.name}</span>
-                <span className={styles.cardSub}>{al.artist_name}</span>
-              </Link>
+            {results.albums?.map((album) => (
+              <AlbumCard
+                key={album.id}
+                album={album}
+                href={`/album/${album.id}`}
+                onPlay={handlePlayAlbum}
+                showArtistName={true}
+              />
             ))}
           </div>
         </div>

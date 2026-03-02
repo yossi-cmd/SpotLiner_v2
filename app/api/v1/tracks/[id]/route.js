@@ -51,30 +51,27 @@ export async function PUT(request, { params }) {
 
     const body = await request.json();
     const { title, artist_id, album_id, image_path, featured_artist_ids } = body;
-    let artistName = null;
-    let albumName = null;
     let artistId = track.artist_id;
     let albumId = track.album_id;
 
     if (artist_id != null) {
-      const a = await query("SELECT id, name FROM artists WHERE id = $1", [
+      const a = await query("SELECT id FROM artists WHERE id = $1", [
         artist_id,
       ]);
       if (!a.rows.length) {
         return NextResponse.json({ error: "Artist not found" }, { status: 400 });
       }
       artistId = artist_id;
-      artistName = a.rows[0].name;
     }
     if (album_id != null) {
-      const al = await query("SELECT id, name FROM albums WHERE id = $1", [
-        album_id,
-      ]);
+      const al = await query(
+        "SELECT id, artist_id FROM albums WHERE id = $1",
+        [album_id]
+      );
       if (!al.rows.length) {
         return NextResponse.json({ error: "Album not found" }, { status: 400 });
       }
       albumId = album_id;
-      albumName = al.rows[0].name;
     }
 
     const newTitle =
@@ -82,30 +79,9 @@ export async function PUT(request, { params }) {
     if (!newTitle) {
       return NextResponse.json({ error: "Title required" }, { status: 400 });
     }
-    if (artistName == null && artistId) {
-      const a = await query("SELECT name FROM artists WHERE id = $1", [
-        artistId,
-      ]);
-      artistName = a.rows[0]?.name || "";
-    }
-    if (albumName == null && albumId) {
-      const al = await query("SELECT name FROM albums WHERE id = $1", [
-        albumId,
-      ]);
-      albumName = al.rows[0]?.name || "";
-    }
-
     await query(
-      "UPDATE tracks SET title = $1, artist = $2, album = $3, artist_id = $4, album_id = $5, image_path = $6 WHERE id = $7",
-      [
-        newTitle,
-        artistName || "",
-        albumName || "",
-        artistId,
-        albumId,
-        image_path ?? null,
-        id,
-      ]
+      "UPDATE tracks SET title = $1, artist_id = $2, album_id = $3, image_path = $4 WHERE id = $5",
+      [newTitle, artistId, albumId, image_path ?? null, id]
     );
 
     await query("DELETE FROM track_featured_artists WHERE track_id = $1", [
@@ -129,8 +105,7 @@ export async function PUT(request, { params }) {
     }
 
     const r = await query(
-      `SELECT t.id, t.title, t.artist, t.album, t.duration_seconds, t.created_at, t.image_path, t.artist_id, t.album_id,
-       (SELECT COALESCE(json_agg(json_build_object('id', fa.id, 'name', fa.name) ORDER BY tfa.position), '[]'::json) FROM track_featured_artists tfa JOIN artists fa ON fa.id = tfa.artist_id WHERE tfa.track_id = t.id) AS featured_artists FROM tracks t WHERE t.id = $1`,
+      `${getTracksListSelect()} WHERE t.id = $1`,
       [id]
     );
     return NextResponse.json(r.rows[0]);

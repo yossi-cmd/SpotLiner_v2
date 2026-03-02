@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getArtists } from "@/lib/api";
 import Link from "next/link";
-import { getImageUrl } from "@/lib/api";
+import { getArtists, getArtist } from "@/lib/api";
 import { useAuthStore } from "@/lib/store/authStore";
 import { usePlayerStore } from "@/lib/store/playerStore";
+import ArtistCard from "@/components/ArtistCard";
 import styles from "./Artists.module.css";
 
 export default function Artists() {
@@ -28,9 +28,7 @@ export default function Artists() {
       event.stopPropagation();
     }
     try {
-      const res = await fetch(`/api/artist/${artistId}`);
-      if (!res.ok) return;
-      const data = await res.json();
+      const data = await getArtist(artistId);
       const tracks = data?.tracks || [];
       if (!tracks.length) return;
       setQueue(tracks, 0);
@@ -54,27 +52,16 @@ export default function Artists() {
         )}
       </div>
       <div className={styles.grid}>
-        {artists.map((a) => (
-          <Link key={a.id} href={`/artist/${a.id}`} className={styles.card}>
-            <div className={styles.imgWrap}>
-              {a.image_path ? (
-                <img src={getImageUrl(a.image_path)} alt="" />
-              ) : (
-                <span>♪</span>
-              )}
-              <button
-                type="button"
-                className={styles.playOverlayBtn}
-                onClick={(e) => handlePlayArtist(a.id, e)}
-                aria-label="השמע את כל שירי האומן"
-              >
-                השמע
-              </button>
-            </div>
-            <span className={styles.name}>{a.name}</span>
-          </Link>
+        {artists.map((artist) => (
+          <ArtistCard
+            key={artist.id}
+            artist={artist}
+            href={`/artist/${artist.id}`}
+            onPlay={handlePlayArtist}
+          />
         ))}
       </div>
     </div>
   );
 }
+

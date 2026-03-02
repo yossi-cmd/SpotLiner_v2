@@ -10,11 +10,24 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get("limit"), 10) || 50, 100);
     const r = await query(
-      `SELECT t.id, t.title, t.artist, t.album, t.duration_seconds, t.artist_id, t.album_id, t.image_path, h.played_at,
-       COALESCE(t.image_path, al.image_path, a.image_path) AS cover_image_path, ${FEATURED_SUB} AS featured_artists
-       FROM play_history h JOIN tracks t ON t.id = h.track_id
-       LEFT JOIN albums al ON t.album_id = al.id LEFT JOIN artists a ON t.artist_id = a.id
-       WHERE h.user_id = $1 ORDER BY h.played_at DESC LIMIT $2`,
+      `SELECT t.id,
+              t.title,
+              a.name AS artist,
+              al.name AS album,
+              t.duration_seconds,
+              t.artist_id,
+              t.album_id,
+              t.image_path,
+              h.played_at,
+              COALESCE(t.image_path, al.image_path, a.image_path) AS cover_image_path,
+              ${FEATURED_SUB} AS featured_artists
+       FROM play_history h
+       JOIN tracks t ON t.id = h.track_id
+       LEFT JOIN albums al ON t.album_id = al.id
+       LEFT JOIN artists a ON t.artist_id = a.id
+       WHERE h.user_id = $1
+       ORDER BY h.played_at DESC
+       LIMIT $2`,
       [userId, limit]
     );
     return NextResponse.json({ tracks: r.rows });

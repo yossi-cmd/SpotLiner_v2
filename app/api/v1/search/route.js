@@ -16,7 +16,12 @@ export async function GET(request) {
     const pattern = `%${q}%`;
     const [tracksRes, artistsRes, albumsRes] = await Promise.all([
       query(
-        `${getTracksListSelect()} WHERE t.title ILIKE $1 OR t.artist ILIKE $1 OR t.album ILIKE $1 ORDER BY t.created_at DESC LIMIT 20`,
+        `${getTracksListSelect()}
+         WHERE t.title ILIKE $1
+           OR a.name ILIKE $1
+           OR al.name ILIKE $1
+         ORDER BY t.created_at DESC
+         LIMIT 20`,
         [pattern]
       ),
       query(

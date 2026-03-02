@@ -34,8 +34,6 @@ CREATE INDEX IF NOT EXISTS idx_albums_artist_id ON albums(artist_id);
 CREATE TABLE IF NOT EXISTS tracks (
   id SERIAL PRIMARY KEY,
   title VARCHAR(500) NOT NULL,
-  artist VARCHAR(500) NOT NULL,
-  album VARCHAR(500) DEFAULT '',
   artist_id INTEGER REFERENCES artists(id) ON DELETE SET NULL,
   album_id INTEGER REFERENCES albums(id) ON DELETE SET NULL,
   duration_seconds INTEGER NOT NULL,
@@ -47,7 +45,6 @@ CREATE TABLE IF NOT EXISTS tracks (
 CREATE INDEX IF NOT EXISTS idx_tracks_artist_id ON tracks(artist_id);
 CREATE INDEX IF NOT EXISTS idx_tracks_album_id ON tracks(album_id);
 CREATE INDEX IF NOT EXISTS idx_tracks_created ON tracks(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_tracks_artist ON tracks(artist);
 CREATE INDEX IF NOT EXISTS idx_tracks_title ON tracks(title);
 
 CREATE TABLE IF NOT EXISTS track_featured_artists (
@@ -111,3 +108,8 @@ CREATE TABLE IF NOT EXISTS push_notification_log (
   sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_push_notification_log_user ON push_notification_log(user_id);
+
+-- Backwards-compatible cleanup: drop legacy denormalized columns if they still exist
+ALTER TABLE tracks DROP COLUMN IF EXISTS artist;
+ALTER TABLE tracks DROP COLUMN IF EXISTS album;
+DROP INDEX IF EXISTS idx_tracks_artist;

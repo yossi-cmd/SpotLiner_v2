@@ -20,7 +20,12 @@ export async function GET(request) {
     let result;
     if (q) {
       result = await query(
-        `${baseSelect} WHERE t.title ILIKE $1 OR t.artist ILIKE $1 OR t.album ILIKE $1 ORDER BY t.created_at DESC LIMIT $2 OFFSET $3`,
+        `${baseSelect}
+         WHERE t.title ILIKE $1
+           OR a.name ILIKE $1
+           OR al.name ILIKE $1
+         ORDER BY t.created_at DESC
+         LIMIT $2 OFFSET $3`,
         [`%${q}%`, limit, offset]
       );
     } else {
@@ -58,18 +63,15 @@ export async function POST(request) {
     }
 
     let artistId = artistIdParam ? parseInt(artistIdParam, 10) : null;
-    let artistName = "";
     let albumId = null;
-    let albumName = "";
 
     if (artistId) {
-      const a = await query("SELECT id, name FROM artists WHERE id = $1", [
+      const a = await query("SELECT id FROM artists WHERE id = $1", [
         artistId,
       ]);
       if (!a.rows.length) {
         return NextResponse.json({ error: "Artist not found" }, { status: 400 });
       }
-      artistName = a.rows[0].name;
     } else {
       return NextResponse.json(
         { error: "Artist required (select or enter)" },
@@ -79,12 +81,11 @@ export async function POST(request) {
 
     if (albumIdParam) {
       const al = await query(
-        "SELECT id, name, artist_id FROM albums WHERE id = $1",
+        "SELECT id, artist_id FROM albums WHERE id = $1",
         [parseInt(albumIdParam, 10)]
       );
       if (al.rows.length && al.rows[0].artist_id === artistId) {
         albumId = al.rows[0].id;
-        albumName = al.rows[0].name;
       }
     }
 
@@ -115,14 +116,12 @@ export async function POST(request) {
       filePathForDb = filename;
     }
 
-    const result = await query(
-      `INSERT INTO tracks (title, artist, album, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, title, artist, album, duration_seconds, created_at, image_path`,
+    const insertRes = await query(
+      `INSERT INTO tracks (title, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id`,
       [
         title,
-        artistName,
-        albumName,
         artistId,
         albumId,
         duration,
@@ -131,8 +130,12 @@ export async function POST(request) {
         trackImagePath || null,
       ]
     );
-    const track = result.rows[0];
-    return NextResponse.json(track, { status: 201 });
+    const newId = insertRes.rows[0].id;
+    const result = await query(
+      `${getTracksListSelect()} WHERE t.id = $1`,
+      [newId]
+    );
+    return NextResponse.json(result.rows[0], { status: 201 });
   } catch (err) {
     if (err.status === 401 || err.status === 403) {
       return NextResponse.json({ error: err.message }, { status: err.status });

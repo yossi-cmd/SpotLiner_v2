@@ -212,23 +212,19 @@ export async function POST(request) {
     const artistName = artistRow.rows[0].name;
 
     let albumId = null;
-    let albumName = "";
     if (album_id != null) {
       const al = await query(
-        "SELECT id, name, artist_id FROM albums WHERE id = $1",
+        "SELECT id, artist_id FROM albums WHERE id = $1",
         [parseInt(album_id, 10)]
       );
       if (al.rows.length && al.rows[0].artist_id === artistId) {
         albumId = al.rows[0].id;
-        albumName = al.rows[0].name;
       }
     }
 
     let buffer;
     let ext = ".mp3";
     let finalTitle = (title || "").trim() || "—";
-    let finalArtistName = artistName;
-    let finalAlbumName = albumName;
 
     if (EXTERNAL_API_URL) {
       try {
@@ -237,8 +233,6 @@ export async function POST(request) {
           buffer = result.buffer;
           ext = result.ext;
           finalTitle = result.title || finalTitle;
-          finalArtistName = result.artist || artistName;
-          finalAlbumName = result.album || albumName;
         } else {
           const idOrUrl = hasUrl ? linkUrl : videoId;
           const result = await downloadYouTubeFromExternalApi(idOrUrl);
@@ -315,14 +309,12 @@ export async function POST(request) {
       filePathForDb = uniqueName;
     }
 
-    const result = await query(
-      `INSERT INTO tracks (title, artist, album, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, title, artist, album, duration_seconds, created_at, image_path`,
+    const insertRes = await query(
+      `INSERT INTO tracks (title, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id`,
       [
         finalTitle,
-        finalArtistName,
-        finalAlbumName,
         artistId,
         albumId,
         0,
@@ -331,8 +323,12 @@ export async function POST(request) {
         image_path || null,
       ]
     );
-    const track = result.rows[0];
-    return NextResponse.json(track, { status: 201 });
+    const newId = insertRes.rows[0].id;
+    const result = await query(
+      `${getTracksListSelect()} WHERE t.id = $1`,
+      [newId]
+    );
+    return NextResponse.json(result.rows[0], { status: 201 });
   } catch (err) {
     if (err.status === 401 || err.status === 403) {
       return NextResponse.json({ error: err.message }, { status: err.status });

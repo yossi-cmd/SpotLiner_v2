@@ -23,11 +23,23 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     const tracks = await query(
-      `SELECT t.id, t.title, t.artist, t.album, t.duration_seconds, t.artist_id, t.album_id, t.image_path, pt.position,
-       COALESCE(t.image_path, al.image_path, a.image_path) AS cover_image_path, ${FEATURED_SUB} AS featured_artists
-       FROM playlist_tracks pt JOIN tracks t ON t.id = pt.track_id
-       LEFT JOIN albums al ON t.album_id = al.id LEFT JOIN artists a ON t.artist_id = a.id
-       WHERE pt.playlist_id = $1 ORDER BY pt.position, pt.track_id`,
+      `SELECT t.id,
+              t.title,
+              a.name AS artist,
+              al.name AS album,
+              t.duration_seconds,
+              t.artist_id,
+              t.album_id,
+              t.image_path,
+              pt.position,
+              COALESCE(t.image_path, al.image_path, a.image_path) AS cover_image_path,
+              ${FEATURED_SUB} AS featured_artists
+       FROM playlist_tracks pt
+       JOIN tracks t ON t.id = pt.track_id
+       LEFT JOIN albums al ON t.album_id = al.id
+       LEFT JOIN artists a ON t.artist_id = a.id
+       WHERE pt.playlist_id = $1
+       ORDER BY pt.position, pt.track_id`,
       [id]
     );
     return NextResponse.json({ ...p, tracks: tracks.rows });

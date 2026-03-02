@@ -1,0 +1,80 @@
+ .card {
+   position: relative;
+   display: flex;
+   flex-direction: column;
+   gap: 0.5rem;
+   padding: 0.75rem;
+   border-radius: 0.75rem;
+   background: var(--surface, #151515);
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+   text-decoration: none;
+   color: inherit;
+   transition: transform 0.15s ease, box-shadow 0.15s ease,
+     background 0.15s ease;
+ }
+
+ .card:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+   background: var(--surface-elevated, #181818);
+ }
+
+ .imgWrap {
+   position: relative;
+   width: 100%;
+   aspect-ratio: 1 / 1;
+   border-radius: 0.75rem;
+   overflow: hidden;
+   background: radial-gradient(circle at 30% 30%, #333 0, #111 55%, #000 100%);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   color: #fff;
+   font-size: 2.25rem;
+ }
+
+ .imgWrap img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   display: block;
+ }
+
+ .placeholder {
+   opacity: 0.8;
+ }
+
+ .playOverlayBtn {
+   position: absolute;
+   left: 0.75rem;
+   bottom: 0.75rem;
+   padding: 0.35rem 0.75rem;
+   border-radius: 999px;
+   border: none;
+   background: linear-gradient(135deg, #1db954, #1ed760);
+   color: #000;
+   cursor: pointer;
+   opacity: 0;
+   transform: translateY(8px);
+   transition: opacity 0.15s ease, transform 0.15s ease;
+   width: 50px;
+   height: 50px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+ }
+
+ .card:hover .playOverlayBtn {
+   opacity: 1;
+   transform: translateY(0);
+ }
+
+ .name {
+   font-weight: 600;
+   font-size: 0.95rem;
+   text-align: start;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+ }
+
