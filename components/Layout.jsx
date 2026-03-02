@@ -51,6 +51,11 @@ export default function Layout({ children }) {
   }, []);
 
   useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!user || !("Notification" in window) || !("serviceWorker" in navigator))
       return;
     let cancelled = false;
