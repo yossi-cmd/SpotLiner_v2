@@ -54,6 +54,7 @@ export async function POST(request) {
     const albumIdParam = formData.get("album_id");
     const duration = parseInt(formData.get("duration_seconds"), 10) || 0;
     const trackImagePath = formData.get("image_path");
+    const lyricsText = (formData.get("lyrics_text") || "").trim() || null;
 
     if (!file || !title) {
       return NextResponse.json(
@@ -117,8 +118,8 @@ export async function POST(request) {
     }
 
     const insertRes = await query(
-      `INSERT INTO tracks (title, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO tracks (title, artist_id, album_id, duration_seconds, file_path, uploaded_by, image_path, lyrics_text)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id`,
       [
         title,
@@ -128,6 +129,7 @@ export async function POST(request) {
         filePathForDb,
         userId,
         trackImagePath || null,
+        lyricsText,
       ]
     );
     const newId = insertRes.rows[0].id;

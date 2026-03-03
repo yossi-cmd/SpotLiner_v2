@@ -59,6 +59,31 @@
   opacity: 0.9;
 }
 
+.lyricsTextarea {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--bg-hover);
+  background: var(--bg-base);
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.lyricsTextarea:focus {
+  outline: none;
+  border-color: var(--green);
+}
+
+.lyricsFileRow {
+  margin-top: 6px;
+}
+
+.lyricsFileRow .fileInput {
+  padding: 6px 0;
+}
+
 .imageRow {
   display: flex;
   flex-direction: column;

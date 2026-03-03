@@ -6,6 +6,7 @@ import { usePlayerStore } from "@/lib/store/playerStore";
 import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
+import EditLyricsModal from "@/components/EditLyricsModal";
 import ArtistCard from "@/components/ArtistCard";
 import AlbumCard from "@/components/AlbumCard";
 import Link from "next/link";
@@ -16,6 +17,7 @@ export default function Search() {
   const [results, setResults] = useState({ tracks: [], artists: [], albums: [] });
   const [loading, setLoading] = useState(false);
   const [trackToEdit, setTrackToEdit] = useState(null);
+  const [trackToEditLyrics, setTrackToEditLyrics] = useState(null);
   const { user } = useAuthStore();
   const { setQueue, setCurrentTrack, currentTrack, setIsPlaying } =
     usePlayerStore();
@@ -170,6 +172,7 @@ export default function Search() {
                 canEditTrack={canEditTrack(track)}
                 onEditTrack={setTrackToEdit}
                 onDeleteTrack={handleDeleteTrack}
+                onEditLyricsTrack={setTrackToEditLyrics}
               />
             ))}
           </div>
@@ -182,6 +185,16 @@ export default function Search() {
           onClose={() => setTrackToEdit(null)}
           onSaved={() => {
             setTrackToEdit(null);
+            if (q.trim()) handleSearch();
+          }}
+        />
+      )}
+      {trackToEditLyrics && (
+        <EditLyricsModal
+          track={trackToEditLyrics}
+          onClose={() => setTrackToEditLyrics(null)}
+          onSaved={() => {
+            setTrackToEditLyrics(null);
             if (q.trim()) handleSearch();
           }}
         />

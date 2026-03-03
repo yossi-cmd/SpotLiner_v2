@@ -50,7 +50,7 @@ export async function PUT(request, { params }) {
     }
 
     const body = await request.json();
-    const { title, artist_id, album_id, image_path, featured_artist_ids } = body;
+    const { title, artist_id, album_id, image_path, featured_artist_ids, lyrics_text } = body;
     let artistId = track.artist_id;
     let albumId = track.album_id;
 
@@ -79,9 +79,17 @@ export async function PUT(request, { params }) {
     if (!newTitle) {
       return NextResponse.json({ error: "Title required" }, { status: 400 });
     }
+    const lyricsValue =
+      lyrics_text !== undefined
+        ? (lyrics_text == null || lyrics_text === "" ? null : String(lyrics_text).trim())
+        : undefined;
     await query(
-      "UPDATE tracks SET title = $1, artist_id = $2, album_id = $3, image_path = $4 WHERE id = $5",
-      [newTitle, artistId, albumId, image_path ?? null, id]
+      lyricsValue !== undefined
+        ? "UPDATE tracks SET title = $1, artist_id = $2, album_id = $3, image_path = $4, lyrics_text = $5 WHERE id = $6"
+        : "UPDATE tracks SET title = $1, artist_id = $2, album_id = $3, image_path = $4 WHERE id = $5",
+      lyricsValue !== undefined
+        ? [newTitle, artistId, albumId, image_path ?? null, lyricsValue || null, id]
+        : [newTitle, artistId, albumId, image_path ?? null, id]
     );
 
     await query("DELETE FROM track_featured_artists WHERE track_id = $1", [

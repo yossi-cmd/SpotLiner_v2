@@ -15,9 +15,12 @@ export async function GET(request) {
               a.name AS artist,
               al.name AS album,
               t.duration_seconds,
+              t.created_at,
+              t.uploaded_by,
               t.artist_id,
               t.album_id,
               t.image_path,
+              t.lyrics_text,
               h.played_at,
               COALESCE(t.image_path, al.image_path, a.image_path) AS cover_image_path,
               ${FEATURED_SUB} AS featured_artists

@@ -160,6 +160,47 @@
   color: var(--text);
 }
 
+.lyricsTextarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--bg-hover);
+  background: var(--bg-base);
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.albumTrackBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.addLyricsBtn {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--bg-hover);
+  background: var(--bg-base);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.addLyricsBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.addLyricsBtn[aria-pressed="true"] {
+  background: var(--green);
+  color: #000;
+  border-color: var(--green);
+}
+
 .albumTableWrap {
   display: flex;
   flex-direction: column;

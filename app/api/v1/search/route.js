@@ -20,7 +20,15 @@ export async function GET(request) {
          WHERE t.title ILIKE $1
            OR a.name ILIKE $1
            OR al.name ILIKE $1
-         ORDER BY t.created_at DESC
+           OR t.lyrics_text ILIKE $1
+         ORDER BY
+           CASE
+             WHEN t.title ILIKE $1 THEN 0
+             WHEN a.name ILIKE $1 OR al.name ILIKE $1 THEN 1
+             WHEN t.lyrics_text ILIKE $1 THEN 2
+             ELSE 3
+           END,
+           t.created_at DESC
          LIMIT 20`,
         [pattern]
       ),

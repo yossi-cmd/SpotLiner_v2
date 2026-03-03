@@ -119,3 +119,7 @@ CREATE INDEX IF NOT EXISTS idx_push_notification_log_user ON push_notification_l
 ALTER TABLE tracks DROP COLUMN IF EXISTS artist;
 ALTER TABLE tracks DROP COLUMN IF EXISTS album;
 DROP INDEX IF EXISTS idx_tracks_artist;
+
+-- Lyrics (for display and search)
+ALTER TABLE tracks ADD COLUMN IF NOT EXISTS lyrics_text TEXT;
+CREATE INDEX IF NOT EXISTS idx_tracks_lyrics ON tracks USING gin(to_tsvector('simple', COALESCE(lyrics_text, '')));

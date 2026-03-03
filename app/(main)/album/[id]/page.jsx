@@ -16,6 +16,7 @@ import { usePlayerStore } from "@/lib/store/playerStore";
 import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
+import EditLyricsModal from "@/components/EditLyricsModal";
 import { IconMoreVertical } from "@/components/Icons";
 import styles from "./Album.module.css";
 
@@ -34,6 +35,7 @@ export default function AlbumPage() {
   const [artists, setArtists] = useState([]);
   const [saving, setSaving] = useState(false);
   const [trackToEdit, setTrackToEdit] = useState(null);
+  const [trackToEditLyrics, setTrackToEditLyrics] = useState(null);
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const { setCurrentTrack, setQueue, currentTrack } = usePlayerStore();
 
@@ -329,6 +331,7 @@ export default function AlbumPage() {
               canEditTrack={canEditTrack(track)}
               onEditTrack={setTrackToEdit}
               onDeleteTrack={handleDeleteTrack}
+              onEditLyricsTrack={setTrackToEditLyrics}
             />
           ))
         )}
@@ -340,6 +343,16 @@ export default function AlbumPage() {
           onClose={() => setTrackToEdit(null)}
           onSaved={() => {
             setTrackToEdit(null);
+            getAlbum(id).then(setAlbum);
+          }}
+        />
+      )}
+      {trackToEditLyrics && (
+        <EditLyricsModal
+          track={trackToEditLyrics}
+          onClose={() => setTrackToEditLyrics(null)}
+          onSaved={() => {
+            setTrackToEditLyrics(null);
             getAlbum(id).then(setAlbum);
           }}
         />

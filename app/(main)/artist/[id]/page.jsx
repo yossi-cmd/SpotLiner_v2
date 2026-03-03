@@ -16,6 +16,7 @@ import { usePlayerStore } from "@/lib/store/playerStore";
 import { useAuthStore } from "@/lib/store/authStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
+import EditLyricsModal from "@/components/EditLyricsModal";
 import { IconMoreVertical } from "@/components/Icons";
 import AlbumCard from "@/components/AlbumCard";
 import styles from "./Artist.module.css";
@@ -33,6 +34,7 @@ export default function ArtistPage() {
   const [editImagePath, setEditImagePath] = useState(undefined);
   const [saving, setSaving] = useState(false);
   const [trackToEdit, setTrackToEdit] = useState(null);
+  const [trackToEditLyrics, setTrackToEditLyrics] = useState(null);
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
   const { setCurrentTrack, setQueue, currentTrack } = usePlayerStore();
 
@@ -328,6 +330,7 @@ export default function ArtistPage() {
                 canEditTrack={canEditTrack(track)}
                 onEditTrack={setTrackToEdit}
                 onDeleteTrack={handleDeleteTrack}
+                onEditLyricsTrack={setTrackToEditLyrics}
               />
             ))}
           </div>
@@ -340,6 +343,16 @@ export default function ArtistPage() {
           onClose={() => setTrackToEdit(null)}
           onSaved={() => {
             setTrackToEdit(null);
+            getArtist(id).then(setArtist);
+          }}
+        />
+      )}
+      {trackToEditLyrics && (
+        <EditLyricsModal
+          track={trackToEditLyrics}
+          onClose={() => setTrackToEditLyrics(null)}
+          onSaved={() => {
+            setTrackToEditLyrics(null);
             getArtist(id).then(setArtist);
           }}
         />

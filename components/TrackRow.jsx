@@ -36,6 +36,7 @@ export default function TrackRow({
   canEditTrack,
   onEditTrack,
   onDeleteTrack,
+  onEditLyricsTrack,
 }) {
   const {
     setCurrentTrack,
@@ -269,6 +270,20 @@ export default function TrackRow({
                     >
                       <IconEdit />
                       ערוך שיר
+                    </button>
+                  )}
+                  {canEditTrack && onEditLyricsTrack && (
+                    <button
+                      type="button"
+                      className={styles.menuItem}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        onEditLyricsTrack(track);
+                      }}
+                    >
+                      <IconEdit />
+                      ערוך כתוביות
                     </button>
                   )}
                   {canEditTrack && onDeleteTrack && (

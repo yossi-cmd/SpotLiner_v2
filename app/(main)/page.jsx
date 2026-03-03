@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import TrackRow from "@/components/TrackRow";
 import EditTrackModal from "@/components/EditTrackModal";
+import EditLyricsModal from "@/components/EditLyricsModal";
 import styles from "./Home.module.css";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trackToEdit, setTrackToEdit] = useState(null);
+  const [trackToEditLyrics, setTrackToEditLyrics] = useState(null);
   const { setCurrentTrack, setQueue, currentTrack } = usePlayerStore();
   const canEditTrack = (track) =>
     user && (user.role === "admin" || track.uploaded_by === user.id);
@@ -115,6 +117,7 @@ export default function Home() {
                 canEditTrack={canEditTrack(track)}
                 onEditTrack={setTrackToEdit}
                 onDeleteTrack={handleDeleteTrack}
+                onEditLyricsTrack={setTrackToEditLyrics}
               />
             ))}
           </div>
@@ -146,6 +149,7 @@ export default function Home() {
                 canEditTrack={canEditTrack(track)}
                 onEditTrack={setTrackToEdit}
                 onDeleteTrack={handleDeleteTrack}
+                onEditLyricsTrack={setTrackToEditLyrics}
               />
             ))
           )}
@@ -158,6 +162,16 @@ export default function Home() {
           onClose={() => setTrackToEdit(null)}
           onSaved={() => {
             setTrackToEdit(null);
+            refreshTracks();
+          }}
+        />
+      )}
+      {trackToEditLyrics && (
+        <EditLyricsModal
+          track={trackToEditLyrics}
+          onClose={() => setTrackToEditLyrics(null)}
+          onSaved={() => {
+            setTrackToEditLyrics(null);
             refreshTracks();
           }}
         />

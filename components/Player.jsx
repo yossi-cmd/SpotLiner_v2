@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getStreamUrl, recordHistory, getImageUrl } from "@/lib/api";
 import { usePlayerStore } from "@/lib/store/playerStore";
@@ -27,6 +28,7 @@ export default function Player() {
   const queuePanelRef = useRef(null);
   const [queueOpen, setQueueOpen] = useState(false);
   const { user } = useAuthStore();
+  const router = useRouter();
   const {
     currentTrack,
     queue,
@@ -35,12 +37,14 @@ export default function Player() {
     progress,
     duration,
     volume,
+    seekTime,
     setCurrentTrack,
     setQueueIndex,
     setIsPlaying,
     setProgress,
     setDuration,
     setVolume,
+    setSeekTime,
     next,
     prev,
     getCurrentFromQueue,
@@ -48,6 +52,17 @@ export default function Player() {
   } = usePlayerStore();
 
   const track = currentTrack || getCurrentFromQueue();
+
+  useEffect(() => {
+    if (seekTime != null && typeof seekTime === "number") {
+      const el = audioRef.current;
+      if (el) {
+        el.currentTime = seekTime;
+        setProgress(seekTime);
+      }
+      setSeekTime(null);
+    }
+  }, [seekTime, setSeekTime, setProgress]);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -91,7 +106,10 @@ export default function Player() {
   };
 
   const onLoadedMetadata = () => {
-    if (audioRef.current && track) setDuration(audioRef.current.duration);
+    const el = audioRef.current;
+    if (!el || !track) return;
+    setDuration(el.duration);
+    if (progress > 0) el.currentTime = progress;
   };
 
   const seek = (e) => {
@@ -115,9 +133,19 @@ export default function Player() {
   }
 
   const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
+  const goToNowPlaying = () => {
+    if (track) router.push("/now-playing");
+  };
 
   return (
-    <div className={styles.player}>
+    <div
+      className={`${styles.player} ${styles.playerClickable}`}
+      onClick={goToNowPlaying}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && goToNowPlaying()}
+      aria-label="צפה בשיר שמתנגן"
+    >
       <audio
         ref={audioRef}
         onTimeUpdate={onTimeUpdate}
@@ -151,7 +179,7 @@ export default function Player() {
           )}
         </div>
       </div>
-      <div className={styles.controls}>
+      <div className={styles.controls} onClick={(e) => e.stopPropagation()}>
         <div className={styles.ctrlBtns}>
           <button
             type="button"
@@ -196,7 +224,7 @@ export default function Player() {
           </span>
         </div>
       </div>
-      <div className={styles.volumeWrap}>
+      <div className={styles.volumeWrap} onClick={(e) => e.stopPropagation()}>
         <span className={styles.volIcon}>
           <IconVolume />
         </span>
@@ -210,7 +238,7 @@ export default function Player() {
           className={styles.volume}
         />
       </div>
-      <div className={styles.queueWrap} ref={queuePanelRef}>
+      <div className={styles.queueWrap} ref={queuePanelRef} onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={() => setQueueOpen((o) => !o)}

@@ -16,6 +16,7 @@ export default function EditTrackModal({ track, onClose, onSaved }) {
   const [albumId, setAlbumId] = useState(track?.album_id || "");
   const [featuredArtistIds, setFeaturedArtistIds] = useState([]);
   const [imagePath, setImagePath] = useState(undefined);
+  const [lyricsText, setLyricsText] = useState(track?.lyrics_text ?? "");
   const [artists, setArtists] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ export default function EditTrackModal({ track, onClose, onSaved }) {
         : []
     );
     setImagePath(undefined);
+    setLyricsText(track.lyrics_text ?? "");
   }, [track]);
 
   useEffect(() => {
@@ -60,6 +62,107 @@ export default function EditTrackModal({ track, onClose, onSaved }) {
     } catch {}
   };
 
+  /** Parse LRC/SRT/VTT content into LRC-like format [mm:ss] line */
+  const parseLyricsFile = (content, filename = "") => {
+    const ext = filename.split(".").pop()?.toLowerCase() || "";
+    const normalized = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const lines = normalized.split("\n");
+
+    // If it's already LRC, keep as-is (trim empty edges only)
+    if (ext === "lrc") {
+      return lines.map((l) => l.replace(/\s+$/, "")).join("\n").trim();
+    }
+
+    // Convert SRT / VTT to simple [mm:ss] LRC lines
+    if (ext === "srt" || ext === "vtt") {
+      const out = [];
+      let i = 0;
+
+      // Skip WEBVTT header if present
+      if (ext === "vtt" && lines[i]?.trim().toUpperCase() === "WEBVTT") {
+        i++;
+      }
+
+      const parseTimeToSeconds = (line) => {
+        // Try hh:mm:ss,ms or hh:mm:ss.ms
+        let m = line.match(/(\d{2}):(\d{2}):(\d{2})[.,]\d{2,3}/);
+        let h = 0;
+        let min = 0;
+        let s = 0;
+        if (m) {
+          h = parseInt(m[1], 10);
+          min = parseInt(m[2], 10);
+          s = parseInt(m[3], 10);
+        } else {
+          // Try mm:ss,ms or mm:ss.ms
+          m = line.match(/(\d{2}):(\d{2})[.,]\d{2,3}/);
+          if (!m) return null;
+          min = parseInt(m[1], 10);
+          s = parseInt(m[2], 10);
+        }
+        return h * 3600 + min * 60 + s;
+      };
+
+      while (i < lines.length) {
+        let line = lines[i].trim();
+        if (!line) {
+          i++;
+          continue;
+        }
+
+        // Optional numeric cue index
+        if (/^\d+$/.test(line)) {
+          i++;
+          line = lines[i]?.trim() || "";
+        }
+
+        // Timecode line
+        if (!line.includes("-->")) {
+          i++;
+          continue;
+        }
+
+        const sec = parseTimeToSeconds(line);
+        if (sec == null) {
+          i++;
+          continue;
+        }
+
+        const total = Math.max(0, sec);
+        const mm = String(Math.floor(total / 60)).padStart(2, "0");
+        const ss = String(total % 60).padStart(2, "0");
+        const tag = `[${mm}:${ss}]`;
+
+        i++;
+        const textLines = [];
+        while (i < lines.length && lines[i].trim()) {
+          textLines.push(lines[i].trim());
+          i++;
+        }
+        const text = textLines.join(" ");
+        if (text) out.push(`${tag} ${text}`);
+        i++;
+      }
+
+      return out.join("\n").trim();
+    }
+
+    // Plain text file – no timing, keep raw
+    return normalized.trim();
+  };
+
+  const onLyricsFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : "";
+      setLyricsText(parseLyricsFile(text, file.name));
+    };
+    reader.readAsText(file, "utf-8");
+    e.target.value = "";
+  };
+
   const displayImagePath =
     imagePath !== undefined ? imagePath : track?.image_path;
   const displayImageUrl = displayImagePath
@@ -81,6 +184,7 @@ export default function EditTrackModal({ track, onClose, onSaved }) {
         album_id: albumId ? parseInt(albumId, 10) : undefined,
         featured_artist_ids: featuredArtistIds,
         image_path: imagePath,
+        lyrics_text: lyricsText.trim() || null,
       });
       onSaved();
     } catch (err) {
@@ -163,6 +267,24 @@ export default function EditTrackModal({ track, onClose, onSaved }) {
                 ))}
             </select>
             <span className={styles.hint}>החזק Ctrl/Cmd לבחירה מרובה</span>
+          </label>
+          <label className={styles.label}>
+            מילות השיר
+            <textarea
+              value={lyricsText}
+              onChange={(e) => setLyricsText(e.target.value)}
+              className={styles.lyricsTextarea}
+              placeholder="הדבק טקסט או העלה קובץ (.txt, .lrc, .srt, .vtt)"
+              rows={6}
+            />
+            <div className={styles.lyricsFileRow}>
+              <input
+                type="file"
+                accept=".txt,.lrc,.srt,.vtt,text/plain"
+                onChange={onLyricsFileChange}
+                className={styles.fileInput}
+              />
+            </div>
           </label>
           <div className={styles.imageRow}>
             <span className={styles.label}>תמונת כיסוי</span>

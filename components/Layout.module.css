@@ -23,6 +23,25 @@
   margin-right: var(--sidebar-width);
 }
 
+.mainNowPlaying {
+  flex: 1;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  background: var(--bg-base);
+}
+
+.playerHidden {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
 @media (max-width: 768px) {
   .mobileHeader {
     display: flex;

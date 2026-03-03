@@ -53,6 +53,7 @@ export default function Upload() {
   const [artists, setArtists] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [duration, setDuration] = useState(0);
+  const [lyrics, setLyrics] = useState("");
   const [albumRows, setAlbumRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -110,12 +111,13 @@ export default function Upload() {
       const next = prev.map((r) => ({ ...r }));
       files.forEach((f, i) => {
         if (emptyIndices[i] !== undefined) {
-          next[emptyIndices[i]] = { ...next[emptyIndices[i]], file: f };
+          const existing = next[emptyIndices[i]];
+          next[emptyIndices[i]] = { ...existing, file: f, title: existing.title || getTitleFromFileName(f.name) };
         } else {
-          next.push({ file: f, title: getTitleFromFileName(f.name) });
+          next.push({ file: f, title: getTitleFromFileName(f.name), lyrics: "", showLyrics: false });
         }
       });
-      return next.length ? next : files.map((f) => ({ file: f, title: getTitleFromFileName(f.name) }));
+      return next.length ? next : files.map((f) => ({ file: f, title: getTitleFromFileName(f.name), lyrics: "", showLyrics: false }));
     });
     e.target.value = "";
   };
@@ -123,6 +125,18 @@ export default function Upload() {
   const setAlbumRowTitle = (index, title) => {
     setAlbumRows((prev) =>
       prev.map((r, i) => (i === index ? { ...r, title } : r))
+    );
+  };
+
+  const setAlbumRowLyrics = (index, lyrics) => {
+    setAlbumRows((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, lyrics } : r))
+    );
+  };
+
+  const toggleAlbumRowLyrics = (index) => {
+    setAlbumRows((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, showLyrics: !r.showLyrics } : r))
     );
   };
 
@@ -182,6 +196,7 @@ export default function Upload() {
           album_id: resolvedAlbumId,
           duration_seconds: durationSeconds,
           image_path: imagePath || undefined,
+          lyrics_text: lyrics.trim() || undefined,
         },
         (p) => setToast({ type: "upload", percent: p })
       );
@@ -194,6 +209,7 @@ export default function Upload() {
       setImagePath("");
       setImageFile(null);
       setDuration(0);
+      setLyrics("");
       e.target.reset();
     } catch (err) {
       setError(err.message || "העלאה נכשלה");
@@ -258,6 +274,7 @@ export default function Upload() {
             album_id: resolvedAlbumId || undefined,
             duration_seconds: durationSec,
             image_path: trackImagePath,
+            lyrics_text: (row.lyrics || "").trim() || undefined,
           },
           (p) => setToast({ type: "upload", percent: p, current, total })
         );
@@ -426,24 +443,43 @@ export default function Upload() {
                   כותרת השירים (הוסף קבצים למעלה)
                 </p>
                 {albumRows.map((row, i) => (
-                  <div key={i} className={styles.albumRow}>
-                    <button
-                      type="button"
-                      className={styles.removeRowBtn}
-                      onClick={() => removeAlbumRow(i)}
-                      title="הסר"
-                    >
-                      ×
-                    </button>
-                    <span className={styles.fileName}>
-                      {row.file ? row.file.name : "—"}
-                    </span>
-                    <input
-                      value={row.title || ""}
-                      onChange={(e) => setAlbumRowTitle(i, e.target.value)}
-                      className={styles.input}
-                      placeholder="שם השיר"
-                    />
+                  <div key={i} className={styles.albumTrackBlock}>
+                    <div className={styles.albumRow}>
+                      <button
+                        type="button"
+                        className={styles.removeRowBtn}
+                        onClick={() => removeAlbumRow(i)}
+                        title="הסר"
+                      >
+                        ×
+                      </button>
+                      <span className={styles.fileName}>
+                        {row.file ? row.file.name : "—"}
+                      </span>
+                      <input
+                        value={row.title || ""}
+                        onChange={(e) => setAlbumRowTitle(i, e.target.value)}
+                        className={styles.input}
+                        placeholder="שם השיר"
+                      />
+                      <button
+                        type="button"
+                        className={styles.addLyricsBtn}
+                        onClick={() => toggleAlbumRowLyrics(i)}
+                        aria-pressed={row.showLyrics}
+                      >
+                        {row.showLyrics ? "הסתר מילים" : "הוסף מילים"}
+                      </button>
+                    </div>
+                    {row.showLyrics && (
+                      <textarea
+                        value={row.lyrics || ""}
+                        onChange={(e) => setAlbumRowLyrics(i, e.target.value)}
+                        className={styles.lyricsTextarea}
+                        placeholder="מילות השיר (טקסט או LRC)"
+                        rows={3}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
@@ -520,6 +556,16 @@ export default function Upload() {
                 />
               </label>
             )}
+            <label className={styles.label}>
+              מילות השיר (אופציונלי)
+              <textarea
+                value={lyrics}
+                onChange={(e) => setLyrics(e.target.value)}
+                className={styles.lyricsTextarea}
+                placeholder="הדבק טקסט או קובץ LRC (שורות עם [דקה:שנייה] או בלי זמנים)"
+                rows={4}
+              />
+            </label>
             <label className={styles.label}>
               תמונת כיסוי (אופציונלי)
               <div className={styles.imageRow}>

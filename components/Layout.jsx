@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Sidebar from "./Sidebar";
 import Player from "./Player";
@@ -23,6 +24,8 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default function Layout({ children }) {
+  const pathname = usePathname();
+  const isNowPlaying = pathname === "/now-playing";
   const user = useAuthStore((s) => s.user);
   const loadFavorites = useFavoritesStore((s) => s.loadFavorites);
   const clearFavorites = useFavoritesStore((s) => s.clear);
@@ -88,23 +91,36 @@ export default function Layout({ children }) {
 
   return (
     <div className={styles.layout}>
-      <header className={styles.mobileHeader}>
-        <button
-          type="button"
-          className={styles.menuBtn}
-          onClick={() => setSidebarOpen(true)}
-          aria-label="פתח תפריט"
-        >
-          <IconMenu />
-        </button>
-        <Link href="/" className={styles.mobileLogo}>
-          ספוטליינר
-        </Link>
-      </header>
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className={styles.main}>{children}</main>
-      <MobileNav />
-      <Player />
+      {!isNowPlaying && (
+        <header className={styles.mobileHeader}>
+          <button
+            type="button"
+            className={styles.menuBtn}
+            onClick={() => setSidebarOpen(true)}
+            aria-label="פתח תפריט"
+          >
+            <IconMenu />
+          </button>
+          <Link href="/" className={styles.mobileLogo}>
+            ספוטליינר
+          </Link>
+        </header>
+      )}
+      {!isNowPlaying && (
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      )}
+      <main
+        className={isNowPlaying ? styles.mainNowPlaying : styles.main}
+      >
+        {children}
+      </main>
+      {!isNowPlaying && <MobileNav />}
+      <div
+        className={isNowPlaying ? styles.playerHidden : undefined}
+        aria-hidden={isNowPlaying}
+      >
+        <Player />
+      </div>
     </div>
   );
 }
