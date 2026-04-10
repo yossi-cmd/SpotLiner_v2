@@ -26,11 +26,15 @@
 .mainNowPlaying {
   flex: 1;
   width: 100%;
+  max-width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   padding: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--bg-base);
+  overscroll-behavior-x: none;
 }
 
 .playerHidden {
