@@ -1,5 +1,12 @@
 import "./globals.css";
 
+/** Explicit mobile layout viewport (safe areas + PWA / iOS) */
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata = {
   title: "SpotLiner",
   description: "אפליקציית מוזיקה שיתופית",

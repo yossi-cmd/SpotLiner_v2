@@ -1,7 +1,12 @@
 .layout {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   padding-top: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 .mobileHeader {
@@ -24,26 +29,35 @@
 }
 
 .mainNowPlaying {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
   width: 100%;
   max-width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   overflow-y: auto;
   background: var(--bg-base);
   overscroll-behavior-x: none;
 }
 
+/* Never use left: -9999px — it inflates document scroll width on mobile Safari / PWA */
 .playerHidden {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
+  position: fixed;
+  inset-inline-end: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(100%);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
